@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v4"
+local ver = "1.00 - logging v5"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -380,6 +380,31 @@ function ClonePartProperties(part: BasePart)
 	workspace.Obbies:FindFirstChild(plr.Name):FindFirstChild(Parts.Name):FindFirstChild(part).Parent = game.ReplicatedStorage.PartQueue:FindFirstChild(Parts.Name)
 end
 
+local function getPlayerNames()
+	local plrs = {}
+
+	for i, plr in pairs(game.Players:GetPlayers()) do
+		table.insert(plrs, plr.Name)
+	end
+
+	return plrs
+end
+
+local function getObbyNames()
+	local obbies = {}
+	local plr, cframe = GetSelectedObby()
+
+	if plr == nil then return end
+
+	for i, obby in pairs(game.ReplicatedStorage.SavedObbies:FindFirstChild(plr.Name):GetChildren()) do
+		table.insert(obbies, obby.Name)
+	end
+
+	return obbies
+end
+
+-- GUI
+
 local Window = Rayfield:CreateWindow({
 	Name = "Obby Cloner v"..ver,
 	Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
@@ -415,17 +440,6 @@ local Window = Rayfield:CreateWindow({
 })
 
 local Saver = Window:CreateTab("Saver", "save")
-local SavedObbyOptions = {}
-
-local function getPlayerNames()
-	local plrs = {}
-	
-	for i, plr in pairs(game.Players:GetPlayers()) do
-		table.insert(plrs, plr.Name)
-	end
-	
-	return plrs
-end
 
 PlayerDropdown = Saver:CreateDropdown({
 	Name = "Players",
@@ -474,12 +488,6 @@ ButtonSave = Saver:CreateButton({
 				Obby.Parent = game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name)
 			else
 				notification("Notification:", "Obby has already been cloned previously!", 6.5, nil)
-			end
-			
-			SavedObbyOptions = {}
-
-			for i, obby in pairs(game.ReplicatedStorage.SavedObbies[player.Name]:GetChildren()) do
-				table.insert(SavedObbyOptions, obby.Name)
 			end
 
 			task.wait()
@@ -574,3 +582,7 @@ ButtonClone = Cloner:CreateButton({
 })
 
 notification("Obby Cloner", "Obby Cloner has loaded!", 4, "bell")
+
+while task.wait() do
+	ClonerDropdown:Set(getObbyNames())
+end
