@@ -1,5 +1,5 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00"
+=local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local ver = "1.001"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -263,7 +263,9 @@ function ClonePartProperties(part: BasePart)
 		local value = part[property]
 		
 		if typeof(value) == "Enums" or "Enum" or "EnumItem" then
-			value = value.Name
+			if value ~= true or false then
+				value = value.Name
+			end
 		end
 		
 		local args = {
