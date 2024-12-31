@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v19"
+local ver = "1.00 - logging v20"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -280,7 +280,7 @@ function ClonePartProperties(part: BasePart)
 		local value = nil
 		
 		if property == "Water" then
-			if part:FindFirstChild("AttributeLinks") and part.AttributeLinks:FindFirstChild("Water") then
+			if part:FindFirstChild("AttributeLinks") ~= nil and part.AttributeLinks:FindFirstChild("Water") ~= nil then
 				value = true
 			end
 		elseif property == "Surface" then
@@ -305,10 +305,13 @@ function ClonePartProperties(part: BasePart)
 	end
 	
 	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
-		if part:FindFirstChild(effectIndex) then
+		print(effectType)
+		print(if part:FindFirstChild(effectIndex) then true else false)
+		
+		if part:FindFirstChild(effectIndex) ~= nil then
 			local effectOrigin = part:FindFirstChild(effectIndex)
 			
-			if part[effectIndex]:FindFirstChild(effectIndex) then
+			if part[effectIndex]:FindFirstChild(effectIndex) ~= nil then
 				effectOrigin = part[effectIndex][effectIndex]
 			end
 			
@@ -390,7 +393,9 @@ function ClonePartProperties(part: BasePart)
 	
 	task.wait(0.2)
 	
-	workspace.Obbies:FindFirstChild(plr.Name):FindFirstChild(Parts.Name):FindFirstChild(part.Name).Parent = game.ReplicatedStorage.PartQueue:FindFirstChild(Parts.Name)
+	Parts:GetChildren()[1].Parent = game.ReplicatedStorage.PartQueue:FindFirstChild(Parts.Name)
+	
+	task.wait()
 end
 
 local function getPlayerNames()
