@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v20"
+local ver = "1.00 - logging v21"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -185,7 +185,7 @@ end
 if not game.ReplicatedStorage:FindFirstChild("PartQueue") then
 	local PartQueue = Instance.new("Folder")
 	PartQueue.Name = "PartQueue"
-	PartQueue.Parent = game.ReplicatedStorage
+	PartQueue.Parent = workspace
 	
 	for i, folder in pairs(PartFolders) do
 		local Folder = Instance.new("Folder")
@@ -232,7 +232,7 @@ function ClonePartProperties(part: BasePart)
 	end
 
 	local Obby = workspace.Obbies:FindFirstChild(plr.Name)
-	local Parts = part.Parent
+	local Parts = Obby.Items:FindFirstChild(part.Parent.Name)
 
 	local args = {
 		[1] = part.Name,
@@ -393,7 +393,7 @@ function ClonePartProperties(part: BasePart)
 	
 	task.wait(0.2)
 	
-	Parts:GetChildren()[1].Parent = game.ReplicatedStorage.PartQueue:FindFirstChild(Parts.Name)
+	Parts:GetChildren()[1].Parent = workspace.PartQueue:FindFirstChild(Parts.Name)
 	
 	task.wait()
 end
