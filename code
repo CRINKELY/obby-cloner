@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v16.1"
+local ver = "1.00 - logging v17"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -240,6 +240,8 @@ function ClonePartProperties(part: BasePart)
 	}
 
 	Events.AddObject:InvokeServer(unpack(args))
+	
+	task.wait()
 
 	local args = {
 		[1] = { -- parts
@@ -254,7 +256,13 @@ function ClonePartProperties(part: BasePart)
 	Events.MoveObject:InvokeServer(unpack(args))
 
 	for i, property in pairs(PropertyTypes.PaintObject) do
-		local value = part[property]
+		local value = nil
+		
+		pcall(function()
+			value = part[property]
+		end)
+		
+		if value == nil then return end
 		
 		if typeof(value) == "Enum" then
 			value = value.Name
@@ -376,6 +384,8 @@ function ClonePartProperties(part: BasePart)
 			Events.BehaviourObject:InvokeServer(unpack(args))
 		end
 	end
+	
+	task.wait()
 	
 	workspace.Obbies:FindFirstChild(plr.Name):FindFirstChild(Parts.Name):FindFirstChild(part).Parent = game.ReplicatedStorage.PartQueue:FindFirstChild(Parts.Name)
 end
@@ -565,10 +575,6 @@ ButtonClone = Cloner:CreateButton({
 					ButtonClone:Set(`Cloning... ( {math.round(PartsCloned/CalculatedPartsSize * 10000) / 100}% )`)
 
 					PartsCloned += 1
-
-					if i % 6 == 0 then
-						task.wait()
-					end
 				end
 			end
 
