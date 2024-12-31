@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v24"
+local ver = "1.00 - logging v25"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -275,7 +275,10 @@ function ClonePartProperties(part: BasePart)
 		}
 
 		Events.PaintObject:InvokeServer(unpack(args))
-		task.wait()
+		
+		for i = 1, 3, 1 do
+			task.wait()
+		end
 	end
 	
 	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
@@ -303,7 +306,9 @@ function ClonePartProperties(part: BasePart)
 
 		Events.PaintObject:InvokeServer(unpack(args))
 		
-		task.wait(0.1)
+		for i = 1, 3, 1 do
+			task.wait()
+		end
 	end
 	
 	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
@@ -374,7 +379,9 @@ function ClonePartProperties(part: BasePart)
 			end
 		end
 		
-		task.wait(0.1)
+		for i = 1, 3, 1 do
+			task.wait()
+		end
 	end
 	
 	for i, behaviour: ValueBase in pairs(part:GetChildren()) do
@@ -390,10 +397,14 @@ function ClonePartProperties(part: BasePart)
 			Events.BehaviourObject:InvokeServer(unpack(args))
 		end
 		
-		task.wait()
+		for i = 1, 3, 1 do
+			task.wait()
+		end
 	end
 	
-	task.wait(0.2)
+	for i = 1, 3, 1 do
+		task.wait()
+	end
 	
 	NewPart.Parent = workspace.PartQueue:FindFirstChild(Parts.Name)
 	
