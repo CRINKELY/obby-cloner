@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v8"
+local ver = "1.00 - logging v9"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -504,8 +504,8 @@ local Cloner = Window:CreateTab("Cloner", "copy")
 
 ClonerDropdown = Cloner:CreateDropdown({
 	Name = "Obbies",
-	Options = {"Update dropdown"},
-	CurrentOption = {"Update dropdown"},
+	Options = {"Click to update dropdown..."},
+	CurrentOption = {},
 	MultipleOptions = false,
 	Flag = "Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 	Callback = function(Options)
@@ -528,7 +528,7 @@ ButtonClone = Cloner:CreateButton({
 				if true then return end
 			end
 
-			if #ClonerDropdown.CurrentOption == 0 or ClonerDropdown.CurrentOption[1] == "None" then
+			if #ClonerDropdown.CurrentOption == 0 or ClonerDropdown.CurrentOption[1] == "Click to update dropdown..." then
 				notification("Error:", "No obby is currently selected. Please select a obby in the Obbies dropdown.", 6.5, "shield-alert")
 				if true then return end
 			end
