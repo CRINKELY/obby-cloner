@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v16"
+local ver = "1.00 - logging v16.1"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -394,7 +394,8 @@ local function getObbyNames()
 	local obbies = {}
 	local plr, cframe = GetSelectedObby()
 
-	if plr == nil then return end
+	if plr == nil then return nil end
+	if game.ReplicatedStorage.SavedObbies:FindFirstChild(plr.Name) == nil then return nil end
 
 	for i, obby in pairs(game.ReplicatedStorage.SavedObbies:FindFirstChild(plr.Name):GetChildren()) do
 		table.insert(obbies, obby.Name)
