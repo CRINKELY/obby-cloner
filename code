@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v7.1"
+local ver = "1.00 - logging v8"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -504,13 +504,15 @@ local Cloner = Window:CreateTab("Cloner", "copy")
 
 ClonerDropdown = Cloner:CreateDropdown({
 	Name = "Obbies",
-	Options = {"None"},
-	CurrentOption = {},
+	Options = {"Update dropdown"},
+	CurrentOption = {"Update dropdown"},
 	MultipleOptions = false,
 	Flag = "Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 	Callback = function(Options)
-		-- The function that takes place when the selected option is changed
-		-- The variable (Options) is a table of strings for the curraent selected options
+		local obbyNames = getObbyNames()
+
+		if obbyNames == nil then return end
+		Options = obbyNames
 	end,
 })
 
@@ -557,7 +559,7 @@ ButtonClone = Cloner:CreateButton({
 				end
 			end
 
-			for i, partsFolder in pairs(Obby:GetChildren()) do
+			for i, partsFolder in pairs(Obby.Items:GetChildren()) do
 				if table.find(BlacklistedFolders, partsFolder.Name) then continue end
 
 				for i, part in pairs(partsFolder:GetChildren()) do
@@ -582,7 +584,3 @@ ButtonClone = Cloner:CreateButton({
 })
 
 notification("Obby Cloner", "Obby Cloner has loaded!", 4, "bell")
-
-while task.wait() do
-	ClonerDropdown:Set(getObbyNames())
-end
