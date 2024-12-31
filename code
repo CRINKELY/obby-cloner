@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.002"
+local ver = "1.003"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -264,9 +264,11 @@ function ClonePartProperties(part: BasePart)
 		
 		print(property, typeof(value))
 		
-		if typeof(value) == "Enums" or "Enum" or "EnumItem" then
+		if typeof(value) == "Enums" or typeof(value) == "Enum" or typeof(value) == "EnumItem" and typeof(value) ~= "boolean" then
 			value = value.Name
 		end
+		
+		print("Passed enum check")
 		
 		local args = {
 			[1] = { -- parts
@@ -284,7 +286,6 @@ function ClonePartProperties(part: BasePart)
 	end
 	
 	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
-		print(property, typeof(value))
 		local value = nil
 		
 		if property == "Water" then
