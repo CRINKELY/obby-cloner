@@ -1,1 +1,556 @@
-a
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local ver = "1.00"
+
+local Events = game.ReplicatedStorage.Events
+
+local PropertyTypes = {
+	["PaintObject"] = {
+		"CanCollide",
+		"CastShadow",
+		"Color",
+		"Material",
+		"Reflectance",
+		"Transparency",
+		"Shape",
+	},
+	
+	["SpecialPaintObject"] = {
+		"Surface", -- Enum, FrontSurface
+		"Slipperiness", -- part.CustomPhysicalProperties.FrictionWeight
+		"Water" -- part.AttributeLinks.Water
+	},
+	
+	["EffectTypes"] = { -- Fire, ImageLabel.ImageLabel, PointLight, SelectionBox, ParticleEmitter, ProximityPrompt, Smoke, Sparkles, SpotLight, SurfaceLight, TextLabel.TextLabel, Texture, VideoFrame.VideoFrame
+		["fire"] = "Fire",
+		["image"] = "ImageLabel",
+		["light"] = "PointLight",
+		["outline"] = "SelectionBox",
+		["particles"] = "ParticleEmitter",
+		["prompt"] = "ProximityPrompt",
+		["smoke"] = "Smoke",
+		["sparkles"] = "Sparkles",
+		["spotlight"] = "Spotlight",
+		["surfacelight"] = "SurfaceLight",
+		["text"] = "TextLabel",
+		["texture"] = "Texture",
+		["video"] = "VideoFrame"
+	},
+	
+	["EffectProperties"] = {
+		["fire"] = {
+			"Color",
+			"Heat",
+			"SecondaryColor",
+			"Size"
+		},
+		["image"] = {
+			"BackgroundColor3",
+			"BackgroundTransparency",
+			"Brightness",
+			"Face",
+			"Image",
+			"ImageColor3",
+			"ImageTransparency",
+			"LightInfluence",
+			"Position",
+			"Size"
+		},
+		["light"] = {
+			"Brightness",
+			"Color",
+			"Range",
+			"Shadows"
+		},
+		["outline"] = {
+			"Color3",
+			"LineThickness",
+			"SurfaceColor3",
+			"SurfaceTransparency",
+			"Transparency"
+		},
+		["particles"] = {
+			"Color",
+			"LightEmission",
+			"LightInfluence",
+			"Orientation",
+			"Size",
+			"Squash",
+			"Texture", -- must be converted from number to string
+			"Transparency",
+			"ZOffset",
+			"EmissionDirection",
+			"Lifetime",
+			"Rate",
+			"RotSpeed",
+			"Speed",
+			"SpreadAngle",
+			"Shape",
+			"ShapeInOut",
+			"ShapePartial",
+			"ShapeStyle",
+			"Acceleration",
+			"Drag",
+			"LockedToPart"
+		},
+		["prompt"] = {
+			"ActionText",
+			"BackgroundColor", -- in attributes
+			"BackgroundTransparency", -- in attributes
+			"GamepadKeyCode",
+			"HoldDuration",
+			"KeyboardKeyCode",
+			"MaxActivationDistance",
+			"ObjectText",
+			"RequiresLineOfSight"
+		},
+		["smoke"] = {
+			"Color",
+			"Opacity",
+			"RiseVelocity",
+			"Size"
+		},
+		["sparkles"] = {
+			"SparkleColor"
+		},
+		["spotlight"] = {
+			"Angle",
+			"Brightness",
+			"Color",
+			"Range",
+			"Shadows"
+		},
+		["surfacelight"] = {
+			"Angle",
+			"Brightness",
+			"Color",
+			"Face",
+			"Range",
+			"Shadows"
+		},
+		["text"] = {
+			"BackgroundTransparency",
+			"Brightness",
+			"Face",
+			"Font",
+			"LightInfluence",
+			"Position",
+			"RichText",
+			"Size",
+			"SizingMode",
+			"Text",
+			"TextColor3",
+			"TextStrokeColor3",
+			"TextStrokeTransparency",
+			"TextTransparency"
+		},
+		["texture"] = {
+			"Color3",
+			"Face",
+			"OffsetStudsU",
+			"OffsetStudsV",
+			"StudsPerTileU",
+			"StudsPerTileV",
+			"Texture", -- must be converted from number to string
+			"Transparency"
+		},
+		["video"] = {
+			"Face",
+			"Video"
+		}
+	}
+}
+
+local PartFolders = {
+	"Buttons",
+	"Character Models",
+	"Conveyors",
+	"Moving Parts",
+	"Music Zones",
+	"Parts",
+	"Pressure Plates",
+	"Push Parts",
+	"Quiz Parts",
+	"Special",
+	"Spin Parts",
+	"Timed Parts",
+	"Truss"
+}
+
+if not game.ReplicatedStorage:FindFirstChild("SavedObbies") then
+	local SavedObbies = Instance.new("Folder")
+	SavedObbies.Name = "SavedObbies"
+	SavedObbies.Parent = game.ReplicatedStorage
+end
+
+if not game.ReplicatedStorage:FindFirstChild("PartQueue") then
+	local PartQueue = Instance.new("Folder")
+	PartQueue.Name = "PartQueue"
+	PartQueue.Parent = game.ReplicatedStorage
+	
+	for i, folder in pairs(PartFolders) do
+		local Folder = Instance.new("Folder")
+		Folder.Name = folder
+		Folder.Parent = PartQueue
+	end
+end
+
+function notification(title, content, duration, image) -- "shield-alert" for errors
+	Rayfield:Notify({
+		Title = title or "Obby Cloner",
+		Content = content or "",
+		Duration = duration or 6.5,
+		Image = image or "bell",
+	})
+end
+
+function GetSelectedObby()
+	local function SelectedObby()
+		for i, obby in pairs(workspace.Obbies:GetChildren()) do
+			if obby.Area.Area.BorderSelection.Visible then
+				return obby.Name
+			end
+		end
+		
+		return nil
+	end
+	
+	local plr = game.Players:FindFirstChild(SelectedObby())
+	
+	if plr == nil then 
+		return nil, nil
+	end
+
+	return plr, workspace.Obbies:FindFirstChild(plr.Name).GetObby.Gate.CFrame - Vector3.new(0, 3, 0) - Vector3.new(0, 0.5, 0) + (workspace.Obbies:FindFirstChild(plr.Name).GetObby.Gate.CFrame.LookVector * 0.5)
+end
+
+function ClonePartProperties(part: BasePart)
+	local plr, obbyCFrame = GetSelectedObby()
+
+	if plr == nil then
+		notification("Error:", "No obby is currently being edited.", 6.5, "shield-alert")
+		if true then return end
+	end
+
+	local Obby = workspace.Obbies:FindFirstChild(plr.Name)
+	local Parts = part.Parent
+
+	local args = {
+		[1] = part.Name,
+		[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
+	}
+
+	Events.AddObject:InvokeServer(unpack(args))
+
+	local args = {
+		[1] = { -- parts
+			[1] = { -- part
+				[1] = Parts:GetChildren()[1],
+				[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)), -- pos, rot
+				[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z) -- size
+			},
+		},
+	}
+
+	Events.MoveObject:InvokeServer(unpack(args))
+
+	for i, property in pairs(PropertyTypes.PaintObject) do
+		local value = part[property]
+		
+		if typeof(value) == "Enum" then
+			value = value.Name
+		end
+		
+		local args = {
+			[1] = { -- parts
+				Parts:GetChildren()[1]
+			},
+			[2] = property,
+			[3] = value
+		}
+
+		Events.PaintObject:InvokeServer(unpack(args))
+	end
+	
+	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
+		local value = nil
+		
+		if property == "Water" then
+			if part:FindFirstChild("AttributeLinks") and part.AttributeLinks:FindFirstChild("Water") then
+				value = true
+			end
+		elseif property == "Surface" then
+			value = part.FrontSurface.Name
+		elseif property == "Slipperiness" then
+			if part.CustomPhysicalProperties ~= nil then
+				value = part.CustomPhysicalProperties.FrictionWeight
+			end
+		end
+
+		local args = {
+			[1] = { -- parts
+				Parts:GetChildren()[1]
+			},
+			[2] = property,
+			[3] = value
+		}
+
+		Events.PaintObject:InvokeServer(unpack(args))
+	end
+	
+	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
+		if part:FindFirstChild(effectIndex) then
+			local effectOrigin = part:FindFirstChild(effectIndex)
+			
+			if part[effectIndex]:FindFirstChild(effectIndex) then
+				effectOrigin = part[effectIndex][effectIndex]
+			end
+			
+			local args = {
+				[1] = { -- parts
+					Parts:GetChildren()[1]
+				},
+				[2] = effectType,
+				[3] = "Default",
+			}
+
+			Events.EffectObject:InvokeServer(unpack(args))
+			
+			for i, effectProperty in pairs(PropertyTypes.EffectProperties[effectType]) do
+				local propertyOrigin = effectOrigin
+				
+				local parentOriginProperties = {
+					"SizingMode",
+					"LightInfluence",
+					"Brightness",
+					"Face"
+				}
+				
+				local parentOriginTypes = {
+					"text",
+					"image",
+					"video"
+				}
+				
+				if table.find(parentOriginProperties, effectProperty) and table.find(parentOriginTypes, effectType) then
+					propertyOrigin = effectOrigin.Parent
+				end
+				
+				local value = propertyOrigin[effectProperty]
+				
+				if typeof(propertyOrigin[effectProperty]) == "Enum" then
+					value = propertyOrigin[effectProperty].Name
+				end
+				
+				if effectProperty == "Texture" then
+					value = tostring(propertyOrigin[effectProperty])
+				end
+				
+				if table.find(part:GetAttributes(), effectProperty) and effectType == "prompt" then
+					value = part:GetAttributes()[table.find(part:GetAttributes(), effectProperty)]
+				end
+				
+				local args = {
+					[1] = { -- parts
+						Parts:GetChildren()[1]
+					},
+					[2] = effectType,
+					[3] = effectProperty,
+					[4] = propertyOrigin[effectProperty]
+				}
+
+				Events.EffectObject:InvokeServer(unpack(args))
+			end
+		end
+	end
+	
+	for i, behaviour: ValueBase in pairs(part:GetChildren()) do
+		if behaviour:IsA("ValueBase") then
+			local args = {
+				[1] = { -- parts
+					Parts:GetChildren()[1]
+				},
+				[2] = behaviour.Name, -- found inside of the part as objectvalues
+				[3] = part[behaviour.Name].Value,
+			}
+
+			Events.BehaviourObject:InvokeServer(unpack(args))
+		end
+	end
+	
+	workspace.Obbies:FindFirstChild(plr.Name):FindFirstChild(Parts.Name):FindFirstChild(part).Parent = game.ReplicatedStorage.PartQueue:FindFirstChild(Parts.Name)
+end
+
+local Window = Rayfield:CreateWindow({
+	Name = "Obby Cloner v"..ver,
+	Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+	LoadingTitle = "Obby Creator - Obby Cloner",
+	LoadingSubtitle = "by alte055",
+	Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+	DisableRayfieldPrompts = false,
+	DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+	ConfigurationSaving = {
+		Enabled = false,
+		FolderName = nil, -- Create a custom folder for your hub/game
+		FileName = "Obby Cloner"
+	},
+
+	Discord = {
+		Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+		Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
+		RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+	},
+
+	KeySystem = false, -- Set this to true to use our key system
+	KeySettings = {
+		Title = "Untitled",
+		Subtitle = "Key System",
+		Note = "No method of obtaining the key is provided", -- Use this to tell the user how to get a key
+		FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+		SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+		GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+		Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+	}
+})
+
+local Saver = Window:CreateTab("Saver", "save")
+local SavedObbyOptions = {}
+
+PlayerDropdown = Saver:CreateDropdown({
+	Name = "Players",
+	Options = game.Players:GetChildren(),
+	CurrentOption = {game.Players.LocalPlayer},
+	MultipleOptions = false,
+	Flag = "Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	Callback = function(Options)
+		Options = game.Players:GetChildren()
+	end,
+})
+
+local SaveCooldown = false
+Button = Saver:CreateButton({
+	Name = "Save Obby",
+	Callback = function()
+		if SaveCooldown then
+			notification("Error:", "Saving is currently on cooldown. Please wait for cooldown to end.", 2, "shield-alert")
+			if true then return end
+		end
+		
+		SaveCooldown = true
+		
+		notification("Obby Cloner", "Saving obby...", 4, "bell")
+		Button:Set("Saving...")
+		
+		local player = PlayerDropdown.CurrentOption[1]
+		
+		if workspace.Obbies:FindFirstChild(player.Name) then
+			if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) then
+				local Folder = Instance.new("Folder")
+				Folder.Name = player.Name
+				Folder.Parent = game.ReplicatedStorage.SavedObbies
+			end
+			
+			if not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(workspace.Obbies:FindFirstChild(player.Name).ObbyNameVAL.Value.." | "..workspace.Obbies:FindFirstChild(player.Name).IdVAL.Value) then
+				local Obby = workspace.Obbies:FindFirstChild(player.Name):Clone()
+				Obby.Name = Obby.ObbyNameVAL.Value.." | "..Obby.IdVAL.Value
+				Obby.Parent = game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name)
+			else
+				notification("Notification:", "Obby has already been cloned previously!", 6.5, nil)
+			end
+		else
+			notification("Error:", "Player selected currently doesn't exist. Please choose another player.", 6.5, "shield-alert")
+			if true then return end
+		end
+		
+		SavedObbyOptions = {}
+		
+		for i, obby in pairs(game.ReplicatedStorage.SavedObbies[player.Name]:GetChildren()) do
+			table.insert(SavedObbyOptions, obby.Name)
+		end
+		
+		task.wait()
+		SaveCooldown = false
+		notification("Obby Cloner", "Obby has been saved!", 4, "bell")
+		Button:Set("Save Obby")
+	end,
+})
+
+local Cloner = Window:CreateTab("Cloner", "copy")
+
+ClonerDropdown = Cloner:CreateDropdown({
+	Name = "Obbies",
+	Options = SavedObbyOptions,
+	CurrentOption = {},
+	MultipleOptions = false,
+	Flag = "Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	Callback = function(Options)
+		-- The function that takes place when the selected option is changed
+		-- The variable (Options) is a table of strings for the current selected options
+	end,
+})
+
+local CloneCooldown = false
+Button = Cloner:CreateButton({
+	Name = "Clone Obby",
+	Callback = function()
+		local player, cframe = GetSelectedObby()
+		
+		if CloneCooldown then
+			notification("Error:", "Obby is currently being cloned. Please wait for obby to fully clone to use again.", 6.5, "shield-alert")
+			if true then return end
+		end
+		
+		if #ClonerDropdown.CurrentOption == 0 then
+			notification("Error:", "No obby is currently selected. Please select a obby in the Obbies dropdown.", 6.5, "shield-alert")
+			if true then return end
+		end
+		
+		if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) or not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerDropdown.CurrentOption[1]) then
+			notification("Error:", "Obby currently selected cannot be found or doesn't exist. Please reselect a obby in the Obbies dropdown.", 6.5, "shield-alert")
+			if true then return end
+		end
+
+		CloneCooldown = true
+		notification("Obby Cloner", "Cloning...", 4, "bell")
+		
+		local Obby = game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerDropdown.CurrentOption[1])
+		
+		local BlacklistedFolders = { -- unsupported parts, will be changed later
+			"Spin Parts",
+			"Moving Parts"
+		}
+		
+		local CalculatedPartsSize = 0
+		local PartsCloned = 0
+		
+		for i, partsFolder in pairs(Obby:GetChildren()) do
+			if table.find(BlacklistedFolders, partsFolder.Name) then continue end
+
+			for i, part in pairs(partsFolder:GetChildren()) do
+				CalculatedPartsSize += 1
+			end
+		end
+		
+		for i, partsFolder in pairs(Obby:GetChildren()) do
+			if table.find(BlacklistedFolders, partsFolder.Name) then continue end
+			
+			for i, part in pairs(partsFolder:GetChildren()) do
+				ClonePartProperties(part)
+				Button:Set(`Cloning... ( {math.round(PartsCloned/CalculatedPartsSize * 10000) / 100}% )`)
+				
+				PartsCloned += 1
+				
+				if i % 6 == 0 then
+					task.wait()
+				end
+			end
+		end
+		
+		notification("Obby Cloner", "Obby has been cloned! Enjoy :)", 4, "bell")
+		CloneCooldown = false
+		Button:Set("Clone Obby")
+	end,
+})
+
+notification("Obby Cloner", "Obby Cloner has loaded!", 4, "bell")
