@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v14"
+local ver = "1.00 - logging v16"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -472,9 +472,7 @@ ButtonSave = Saver:CreateButton({
 			if workspace.Obbies:FindFirstChild(player.Name) then
 				if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) then
 					local Folder = Instance.new("Folder")
-					print("making folder")
 					Folder.Name = player.Name
-					print("folder made")
 					Folder.Parent = game.ReplicatedStorage.SavedObbies
 				end
 			else
@@ -502,15 +500,21 @@ ButtonSave = Saver:CreateButton({
 
 local Cloner = Window:CreateTab("Cloner", "copy")
 
-local ClonerInput = Cloner:CreateInput({
+ClonerInput = Cloner:CreateInput({
 	Name = "Target",
 	CurrentValue = "",
 	PlaceholderText = "Input target ObbyId...",
 	RemoveTextAfterFocusLost = false,
 	Flag = "Input1",
 	Callback = function(Text)
-		-- The function that takes place when the input is changed
-		-- The variable (Text) is a string for the value in the text box
+		local obbyNames = getObbyNames()
+		
+		if obbyNames ~= nil and table.find(obbyNames, Text) then
+			notification("Obby Cloner", `ObbyId set to {Text}.`, 4, "bell")
+		else
+			notification("Error:", "Obby currently selected cannot be found or doesn't exist. Please reselect a ObbyId.", 6.5, "shield-alert")
+			ClonerInput:Set("")
+		end
 	end,
 })
 
@@ -527,7 +531,7 @@ ButtonClone = Cloner:CreateButton({
 			end
 
 			if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) or not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerInput.CurrentValue) then
-				notification("Error:", "Obby currently selected cannot be found or doesn't exist. Please reselect a obby in the Obbies dropdown.", 6.5, "shield-alert")
+				notification("Error:", "Obby currently selected cannot be found or doesn't exist. Please reselect a ObbyId.", 6.5, "shield-alert")
 				if true then return end
 			end
 
