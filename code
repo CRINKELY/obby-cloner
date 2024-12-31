@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.001"
+local ver = "1.002"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -262,10 +262,10 @@ function ClonePartProperties(part: BasePart)
 		
 		local value = part[property]
 		
+		print(property, typeof(value))
+		
 		if typeof(value) == "Enums" or "Enum" or "EnumItem" then
-			if value ~= true or false then
-				value = value.Name
-			end
+			value = value.Name
 		end
 		
 		local args = {
@@ -284,6 +284,7 @@ function ClonePartProperties(part: BasePart)
 	end
 	
 	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
+		print(property, typeof(value))
 		local value = nil
 		
 		if property == "Water" then
@@ -314,9 +315,6 @@ function ClonePartProperties(part: BasePart)
 	end
 	
 	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
-		print(effectType)
-		print(if part:FindFirstChild(effectIndex) then true else false)
-		
 		if part:FindFirstChild(effectIndex) ~= nil then
 			local effectOrigin = part:FindFirstChild(effectIndex)
 			
