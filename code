@@ -439,7 +439,7 @@ PlayerDropdown = Saver:CreateDropdown({
 })
 
 local SaveCooldown = false
-Button = Saver:CreateButton({
+ButtonSave = Saver:CreateButton({
 	Name = "Save Obby",
 	Callback = function()
 		local success, errors = pcall(function()
@@ -451,7 +451,7 @@ Button = Saver:CreateButton({
 			SaveCooldown = true
 
 			notification("Obby Cloner", "Saving obby...", 4, "bell")
-			Button:Set("Saving...")
+			ButtonSave:Set("Saving...")
 
 			local player = PlayerDropdown.CurrentOption[1]
 			print(player.Name)
@@ -490,12 +490,10 @@ Button = Saver:CreateButton({
 			task.wait()
 			SaveCooldown = false
 			notification("Obby Cloner", "Obby has been saved!", 4, "bell")
-			Button:Set("Save Obby")
+			ButtonSave:Set("Save Obby")
 		end)
 		
-		if not success and errors ~= "" or nil then
-			warn(errors)
-		end
+		warn("Errors:",errors)
 	end,
 })
 
@@ -514,7 +512,7 @@ ClonerDropdown = Cloner:CreateDropdown({
 })
 
 local CloneCooldown = false
-Button = Cloner:CreateButton({
+ButtonClone = Cloner:CreateButton({
 	Name = "Clone Obby",
 	Callback = function()
 		local success, errors = pcall(function()
@@ -561,7 +559,7 @@ Button = Cloner:CreateButton({
 
 				for i, part in pairs(partsFolder:GetChildren()) do
 					ClonePartProperties(part)
-					Button:Set(`Cloning... ( {math.round(PartsCloned/CalculatedPartsSize * 10000) / 100}% )`)
+					ButtonClone:Set(`Cloning... ( {math.round(PartsCloned/CalculatedPartsSize * 10000) / 100}% )`)
 
 					PartsCloned += 1
 
@@ -573,12 +571,10 @@ Button = Cloner:CreateButton({
 
 			notification("Obby Cloner", "Obby has been cloned! Enjoy :)", 4, "bell")
 			CloneCooldown = false
-			Button:Set("Clone Obby")
+			ButtonClone:Set("Clone Obby")
 		end)
 		
-		if not success and errors ~= "" or nil then
-			warn(errors)
-		end
+		warn("Errors:",errors)
 	end,
 })
 
