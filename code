@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v21"
+local ver = "1.00 - logging v22"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -241,12 +241,14 @@ function ClonePartProperties(part: BasePart)
 
 	Events.AddObject:InvokeServer(unpack(args))
 	
+	local NewPart = Parts:GetChildren()[1]
+	
 	task.wait()
 
 	local args = {
 		[1] = { -- parts
 			[1] = { -- part
-				[1] = Parts:GetChildren()[1],
+				[1] = NewPart,
 				[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)), -- pos, rot
 				[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z) -- size
 			},
@@ -266,7 +268,7 @@ function ClonePartProperties(part: BasePart)
 		
 		local args = {
 			[1] = { -- parts
-				Parts:GetChildren()[1]
+				NewPart
 			},
 			[2] = property,
 			[3] = value
@@ -293,7 +295,7 @@ function ClonePartProperties(part: BasePart)
 
 		local args = {
 			[1] = { -- parts
-				Parts:GetChildren()[1]
+				NewPart
 			},
 			[2] = property,
 			[3] = value
@@ -317,7 +319,7 @@ function ClonePartProperties(part: BasePart)
 			
 			local args = {
 				[1] = { -- parts
-					Parts:GetChildren()[1]
+					NewPart
 				},
 				[2] = effectType,
 				[3] = "Default",
@@ -361,7 +363,7 @@ function ClonePartProperties(part: BasePart)
 				
 				local args = {
 					[1] = { -- parts
-						Parts:GetChildren()[1]
+						NewPart
 					},
 					[2] = effectType,
 					[3] = effectProperty,
@@ -379,7 +381,7 @@ function ClonePartProperties(part: BasePart)
 		if behaviour:IsA("ValueBase") then
 			local args = {
 				[1] = { -- parts
-					Parts:GetChildren()[1]
+					NewPart
 				},
 				[2] = behaviour.Name, -- found inside of the part as objectvalues
 				[3] = part[behaviour.Name].Value,
@@ -393,7 +395,7 @@ function ClonePartProperties(part: BasePart)
 	
 	task.wait(0.2)
 	
-	Parts:GetChildren()[1].Parent = workspace.PartQueue:FindFirstChild(Parts.Name)
+	NewPart.Parent = workspace.PartQueue:FindFirstChild(Parts.Name)
 	
 	task.wait()
 end
