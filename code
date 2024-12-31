@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v17"
+local ver = "1.00 - logging v18"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -256,13 +256,9 @@ function ClonePartProperties(part: BasePart)
 	Events.MoveObject:InvokeServer(unpack(args))
 
 	for i, property in pairs(PropertyTypes.PaintObject) do
-		local value = nil
+		if part.ClassName == "MeshPart" and property == "Shape" then continue end
 		
-		pcall(function()
-			value = part[property]
-		end)
-		
-		if value == nil then return end
+		local value = part[property]
 		
 		if typeof(value) == "Enum" then
 			value = value.Name
@@ -277,6 +273,7 @@ function ClonePartProperties(part: BasePart)
 		}
 
 		Events.PaintObject:InvokeServer(unpack(args))
+		task.wait()
 	end
 	
 	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
@@ -303,6 +300,8 @@ function ClonePartProperties(part: BasePart)
 		}
 
 		Events.PaintObject:InvokeServer(unpack(args))
+		
+		task.wait()
 	end
 	
 	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
@@ -369,6 +368,8 @@ function ClonePartProperties(part: BasePart)
 				Events.EffectObject:InvokeServer(unpack(args))
 			end
 		end
+		
+		task.wait()
 	end
 	
 	for i, behaviour: ValueBase in pairs(part:GetChildren()) do
@@ -383,9 +384,11 @@ function ClonePartProperties(part: BasePart)
 
 			Events.BehaviourObject:InvokeServer(unpack(args))
 		end
+		
+		task.wait()
 	end
 	
-	task.wait()
+	task.wait(0.2)
 	
 	workspace.Obbies:FindFirstChild(plr.Name):FindFirstChild(Parts.Name):FindFirstChild(part).Parent = game.ReplicatedStorage.PartQueue:FindFirstChild(Parts.Name)
 end
