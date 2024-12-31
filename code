@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v18"
+local ver = "1.00 - logging v19"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -390,7 +390,7 @@ function ClonePartProperties(part: BasePart)
 	
 	task.wait(0.2)
 	
-	workspace.Obbies:FindFirstChild(plr.Name):FindFirstChild(Parts.Name):FindFirstChild(part).Parent = game.ReplicatedStorage.PartQueue:FindFirstChild(Parts.Name)
+	workspace.Obbies:FindFirstChild(plr.Name):FindFirstChild(Parts.Name):FindFirstChild(part.Name).Parent = game.ReplicatedStorage.PartQueue:FindFirstChild(Parts.Name)
 end
 
 local function getPlayerNames()
