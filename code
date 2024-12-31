@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v13"
+local ver = "1.00 - logging v14"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -576,10 +576,18 @@ ButtonClone = Cloner:CreateButton({
 	end,
 })
 
-local ObbiesSaved = Cloner:CreateParagraph({Title = "Cloned Obbies:", Content = table.concat(getObbyNames(), ",\n")})
+local ObbiesSaved = Cloner:CreateParagraph({Title = "Cloned Obbies:", Content = "None"})
 
 notification("Obby Cloner", "Obby Cloner has loaded!", 4, "bell")
 
 while task.wait() do
+	local obbyNames = getObbyNames()
+	
+	if obbyNames == nil then
+		ObbiesSaved:Set({Title = "Cloned Obbies:", Content = "None"})
+		task.wait()
+		continue
+	end
+	
 	ObbiesSaved:Set({Title = "Cloned Obbies:", Content = table.concat(getObbyNames(), ",\n")})
 end
