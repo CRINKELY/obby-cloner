@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v5"
+local ver = "1.00 - logging v6"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -504,13 +504,13 @@ local Cloner = Window:CreateTab("Cloner", "copy")
 
 ClonerDropdown = Cloner:CreateDropdown({
 	Name = "Obbies",
-	Options = SavedObbyOptions,
+	Options = {},
 	CurrentOption = {},
 	MultipleOptions = false,
 	Flag = "Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 	Callback = function(Options)
 		-- The function that takes place when the selected option is changed
-		-- The variable (Options) is a table of strings for the current selected options
+		-- The variable (Options) is a table of strings for the curraent selected options
 	end,
 })
 
