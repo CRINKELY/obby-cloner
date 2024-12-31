@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v11"
+local ver = "1.00 - logging v12"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -410,7 +410,7 @@ local Window = Rayfield:CreateWindow({
 	Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
 	LoadingTitle = "Obby Creator - Obby Cloner",
 	LoadingSubtitle = "by alte055",
-	Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+	Theme = "Ocean", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
 	DisableRayfieldPrompts = false,
 	DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
@@ -482,9 +482,9 @@ ButtonSave = Saver:CreateButton({
 				if true then return end
 			end
 
-			if not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(workspace.Obbies:FindFirstChild(player.Name).ObbyNameVAL.Value.." | "..workspace.Obbies:FindFirstChild(player.Name).IdVAL.Value) then
+			if not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(workspace.Obbies:FindFirstChild(player.Name).IdVAL.Value) then
 				local Obby = workspace.Obbies:FindFirstChild(player.Name):Clone()
-				Obby.Name = Obby.ObbyNameVAL.Value.." | "..Obby.IdVAL.Value
+				Obby.Name = Obby.IdVAL.Value
 				Obby.Parent = game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name)
 			else
 				notification("Notification:", "Obby has already been cloned previously!", 6.5, nil)
@@ -502,19 +502,15 @@ ButtonSave = Saver:CreateButton({
 
 local Cloner = Window:CreateTab("Cloner", "copy")
 
-ClonerDropdown = Cloner:CreateDropdown({
-	Name = "Obbies",
-	Options = {"Click to update dropdown..."},
-	CurrentOption = {},
-	MultipleOptions = false,
-	Flag = "Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Options)
-		ClonerDropdown:Set({""})
-		
-		local obbyNames = getObbyNames()
-
-		if obbyNames == nil then return end
-		Options = obbyNames
+local ClonerInput = Cloner:CreateInput({
+	Name = "Target",
+	CurrentValue = "",
+	PlaceholderText = "Input target ObbyId...",
+	RemoveTextAfterFocusLost = false,
+	Flag = "Input1",
+	Callback = function(Text)
+		-- The function that takes place when the input is changed
+		-- The variable (Text) is a string for the value in the text box
 	end,
 })
 
@@ -530,12 +526,7 @@ ButtonClone = Cloner:CreateButton({
 				if true then return end
 			end
 
-			if #ClonerDropdown.CurrentOption == 0 or ClonerDropdown.CurrentOption[1] == "Click to update dropdown..." then
-				notification("Error:", "No obby is currently selected. Please select a obby in the Obbies dropdown.", 6.5, "shield-alert")
-				if true then return end
-			end
-
-			if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) or not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerDropdown.CurrentOption[1]) then
+			if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) or not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerInput.CurrentValue) then
 				notification("Error:", "Obby currently selected cannot be found or doesn't exist. Please reselect a obby in the Obbies dropdown.", 6.5, "shield-alert")
 				if true then return end
 			end
@@ -543,7 +534,7 @@ ButtonClone = Cloner:CreateButton({
 			CloneCooldown = true
 			notification("Obby Cloner", "Cloning...", 4, "bell")
 
-			local Obby = game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerDropdown.CurrentOption[1])
+			local Obby = game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerInput.CurrentValue)
 
 			local BlacklistedFolders = { -- unsupported parts, will be changed later
 				"Spin Parts",
@@ -585,4 +576,10 @@ ButtonClone = Cloner:CreateButton({
 	end,
 })
 
+local ObbiesSaved = Cloner:CreateParagraph({Title = "Cloned Obbies:", Content = table.concat(getObbyNames(), ",\n")})
+
 notification("Obby Cloner", "Obby Cloner has loaded!", 4, "bell")
+
+while task.wait() do
+	ObbiesSaved:Set({Title = "Cloned Obbies:", Content = table.concat(getObbyNames(), ",\n")})
+end
