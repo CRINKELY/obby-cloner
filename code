@@ -438,7 +438,7 @@ end
 -- GUI
 
 local Window = Rayfield:CreateWindow({
-	Name = "Obby Cloner v"..ver,
+	Name = "Obby Cloner - v"..ver,
 	Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
 	LoadingTitle = "Obby Creator - Obby Cloner",
 	LoadingSubtitle = "by alte055",
