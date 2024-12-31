@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 TEST 2"
+local ver = "1.00 - logging"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -442,32 +442,33 @@ local SaveCooldown = false
 Button = Saver:CreateButton({
 	Name = "Save Obby",
 	Callback = function()
-		if SaveCooldown then
-			notification("Error:", "Saving is currently on cooldown. Please wait for cooldown to end.", 2, "shield-alert")
-			if true then return end
-		end
-		
-		SaveCooldown = true
-		
-		notification("Obby Cloner", "Saving obby...", 4, "bell")
-		Button:Set("Saving...")
-		
-		local player = PlayerDropdown.CurrentOption[1]
-		print(player.Name)
-		
-		if workspace.Obbies:FindFirstChild(player.Name) then
-			if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) then
-				local Folder = Instance.new("Folder")
-				print("making folder")
-				Folder.Name = player.Name
-				print("folder made")
-				Folder.Parent = game.ReplicatedStorage.SavedObbies
+		local success, errors = pcall(function()
+			if SaveCooldown then
+				notification("Error:", "Saving is currently on cooldown. Please wait for cooldown to end.", 2, "shield-alert")
+				if true then return end
 			end
-			
-			local Obby = workspace.Obbies:FindFirstChild(player.Name):Clone()
-			Obby.Name = Obby.ObbyNameVAL.Value.." | "..Obby.IdVAL.Value
-			Obby.Parent = game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name)
-			
+
+			SaveCooldown = true
+
+			notification("Obby Cloner", "Saving obby...", 4, "bell")
+			Button:Set("Saving...")
+
+			local player = PlayerDropdown.CurrentOption[1]
+			print(player.Name)
+
+			if workspace.Obbies:FindFirstChild(player.Name) then
+				if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) then
+					local Folder = Instance.new("Folder")
+					print("making folder")
+					Folder.Name = player.Name
+					print("folder made")
+					Folder.Parent = game.ReplicatedStorage.SavedObbies
+				end
+
+				local Obby = workspace.Obbies:FindFirstChild(player.Name):Clone()
+				Obby.Name = Obby.ObbyNameVAL.Value.." | "..Obby.IdVAL.Value
+				Obby.Parent = game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name)
+
 			--[[
 			if not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(workspace.Obbies:FindFirstChild(player.Name).ObbyNameVAL.Value.." | "..workspace.Obbies:FindFirstChild(player.Name).IdVAL.Value) then
 				
@@ -475,21 +476,26 @@ Button = Saver:CreateButton({
 				notification("Notification:", "Obby has already been cloned previously!", 6.5, nil)
 			end
 			]]
-		else
-			notification("Error:", "Player selected currently doesn't exist. Please choose another player.", 6.5, "shield-alert")
-			if true then return end
+			else
+				notification("Error:", "Player selected currently doesn't exist. Please choose another player.", 6.5, "shield-alert")
+				if true then return end
+			end
+
+			SavedObbyOptions = {}
+
+			for i, obby in pairs(game.ReplicatedStorage.SavedObbies[player.Name]:GetChildren()) do
+				table.insert(SavedObbyOptions, obby.Name)
+			end
+
+			task.wait()
+			SaveCooldown = false
+			notification("Obby Cloner", "Obby has been saved!", 4, "bell")
+			Button:Set("Save Obby")
+		end)
+		
+		if not success and errors ~= "" or nil then
+			warn(errors)
 		end
-		
-		SavedObbyOptions = {}
-		
-		for i, obby in pairs(game.ReplicatedStorage.SavedObbies[player.Name]:GetChildren()) do
-			table.insert(SavedObbyOptions, obby.Name)
-		end
-		
-		task.wait()
-		SaveCooldown = false
-		notification("Obby Cloner", "Obby has been saved!", 4, "bell")
-		Button:Set("Save Obby")
 	end,
 })
 
@@ -511,62 +517,68 @@ local CloneCooldown = false
 Button = Cloner:CreateButton({
 	Name = "Clone Obby",
 	Callback = function()
-		local player, cframe = GetSelectedObby()
-		
-		if CloneCooldown then
-			notification("Error:", "Obby is currently being cloned. Please wait for obby to fully clone to use again.", 6.5, "shield-alert")
-			if true then return end
-		end
-		
-		if #ClonerDropdown.CurrentOption == 0 then
-			notification("Error:", "No obby is currently selected. Please select a obby in the Obbies dropdown.", 6.5, "shield-alert")
-			if true then return end
-		end
-		
-		if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) or not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerDropdown.CurrentOption[1]) then
-			notification("Error:", "Obby currently selected cannot be found or doesn't exist. Please reselect a obby in the Obbies dropdown.", 6.5, "shield-alert")
-			if true then return end
-		end
+		local success, errors = pcall(function()
+			local player, cframe = GetSelectedObby()
 
-		CloneCooldown = true
-		notification("Obby Cloner", "Cloning...", 4, "bell")
-		
-		local Obby = game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerDropdown.CurrentOption[1])
-		
-		local BlacklistedFolders = { -- unsupported parts, will be changed later
-			"Spin Parts",
-			"Moving Parts"
-		}
-		
-		local CalculatedPartsSize = 0
-		local PartsCloned = 0
-		
-		for i, partsFolder in pairs(Obby:GetChildren()) do
-			if table.find(BlacklistedFolders, partsFolder.Name) then continue end
-
-			for i, part in pairs(partsFolder:GetChildren()) do
-				CalculatedPartsSize += 1
+			if CloneCooldown then
+				notification("Error:", "Obby is currently being cloned. Please wait for obby to fully clone to use again.", 6.5, "shield-alert")
+				if true then return end
 			end
-		end
-		
-		for i, partsFolder in pairs(Obby:GetChildren()) do
-			if table.find(BlacklistedFolders, partsFolder.Name) then continue end
-			
-			for i, part in pairs(partsFolder:GetChildren()) do
-				ClonePartProperties(part)
-				Button:Set(`Cloning... ( {math.round(PartsCloned/CalculatedPartsSize * 10000) / 100}% )`)
-				
-				PartsCloned += 1
-				
-				if i % 6 == 0 then
-					task.wait()
+
+			if #ClonerDropdown.CurrentOption == 0 then
+				notification("Error:", "No obby is currently selected. Please select a obby in the Obbies dropdown.", 6.5, "shield-alert")
+				if true then return end
+			end
+
+			if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) or not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerDropdown.CurrentOption[1]) then
+				notification("Error:", "Obby currently selected cannot be found or doesn't exist. Please reselect a obby in the Obbies dropdown.", 6.5, "shield-alert")
+				if true then return end
+			end
+
+			CloneCooldown = true
+			notification("Obby Cloner", "Cloning...", 4, "bell")
+
+			local Obby = game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerDropdown.CurrentOption[1])
+
+			local BlacklistedFolders = { -- unsupported parts, will be changed later
+				"Spin Parts",
+				"Moving Parts"
+			}
+
+			local CalculatedPartsSize = 0
+			local PartsCloned = 0
+
+			for i, partsFolder in pairs(Obby:GetChildren()) do
+				if table.find(BlacklistedFolders, partsFolder.Name) then continue end
+
+				for i, part in pairs(partsFolder:GetChildren()) do
+					CalculatedPartsSize += 1
 				end
 			end
-		end
+
+			for i, partsFolder in pairs(Obby:GetChildren()) do
+				if table.find(BlacklistedFolders, partsFolder.Name) then continue end
+
+				for i, part in pairs(partsFolder:GetChildren()) do
+					ClonePartProperties(part)
+					Button:Set(`Cloning... ( {math.round(PartsCloned/CalculatedPartsSize * 10000) / 100}% )`)
+
+					PartsCloned += 1
+
+					if i % 6 == 0 then
+						task.wait()
+					end
+				end
+			end
+
+			notification("Obby Cloner", "Obby has been cloned! Enjoy :)", 4, "bell")
+			CloneCooldown = false
+			Button:Set("Clone Obby")
+		end)
 		
-		notification("Obby Cloner", "Obby has been cloned! Enjoy :)", 4, "bell")
-		CloneCooldown = false
-		Button:Set("Clone Obby")
+		if not success and errors ~= "" or nil then
+			warn(errors)
+		end
 	end,
 })
 
