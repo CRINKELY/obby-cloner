@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v2"
+local ver = "1.00 - logging v3"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -454,7 +454,8 @@ ButtonSave = Saver:CreateButton({
 			ButtonSave:Set("Saving...")
 
 			local player = PlayerDropdown.CurrentOption[1]
-			print(player.Name)
+			print(player)
+			print(if player == nil then true else false)
 
 			if workspace.Obbies:FindFirstChild(player.Name) then
 				if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) then
@@ -579,4 +580,3 @@ ButtonClone = Cloner:CreateButton({
 })
 
 notification("Obby Cloner", "Obby Cloner has loaded!", 4, "bell")
-
