@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00"
+local ver = "1.00 TEST"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -417,14 +417,24 @@ local Window = Rayfield:CreateWindow({
 local Saver = Window:CreateTab("Saver", "save")
 local SavedObbyOptions = {}
 
+local function getPlayerNames()
+	local plrs = {}
+	
+	for i, plr in pairs(game.Players:GetPlayers()) do
+		table.insert(plrs, plr.Name)
+	end
+	
+	return plrs
+end
+
 PlayerDropdown = Saver:CreateDropdown({
 	Name = "Players",
-	Options = game.Players:GetChildren(),
-	CurrentOption = {game.Players.LocalPlayer},
+	Options = getPlayerNames(),
+	CurrentOption = {game.Players.LocalPlayer.Name},
 	MultipleOptions = false,
 	Flag = "Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 	Callback = function(Options)
-		Options = game.Players:GetChildren()
+		Options = getPlayerNames()
 	end,
 })
 
@@ -554,3 +564,4 @@ Button = Cloner:CreateButton({
 })
 
 notification("Obby Cloner", "Obby Cloner has loaded!", 4, "bell")
+
