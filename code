@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v22"
+local ver = "1.00 - logging v23"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -262,13 +262,13 @@ function ClonePartProperties(part: BasePart)
 		
 		local value = part[property]
 		
-		if typeof(value) == "Enum" then
+		if typeof(value) == "Enum" or "EnumItem" then
 			value = value.Name
 		end
 		
 		local args = {
 			[1] = { -- parts
-				NewPart
+				[1] = NewPart
 			},
 			[2] = property,
 			[3] = value
@@ -303,7 +303,7 @@ function ClonePartProperties(part: BasePart)
 
 		Events.PaintObject:InvokeServer(unpack(args))
 		
-		task.wait()
+		task.wait(0.1)
 	end
 	
 	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
@@ -349,7 +349,7 @@ function ClonePartProperties(part: BasePart)
 				
 				local value = propertyOrigin[effectProperty]
 				
-				if typeof(propertyOrigin[effectProperty]) == "Enum" then
+				if typeof(propertyOrigin[effectProperty]) == "Enum" or "EnumItem" then
 					value = propertyOrigin[effectProperty].Name
 				end
 				
@@ -374,7 +374,7 @@ function ClonePartProperties(part: BasePart)
 			end
 		end
 		
-		task.wait()
+		task.wait(0.1)
 	end
 	
 	for i, behaviour: ValueBase in pairs(part:GetChildren()) do
