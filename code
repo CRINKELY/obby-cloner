@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 - logging v7"
+local ver = "1.00 - logging v7.1"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -206,7 +206,7 @@ end
 function GetSelectedObby()
 	local function SelectedObby()
 		for i, obby in pairs(workspace.Obbies:GetChildren()) do
-			if obby.Area.Area.BorderSelection.Visible then
+			if obby.Area.Area:FindFirstChild("BorderSelection") and obby.Area.Area.BorderSelection.Visible then
 				return obby.Name
 			end
 		end
