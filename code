@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.00 TEST"
+local ver = "1.00 TEST 2"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -453,21 +453,28 @@ Button = Saver:CreateButton({
 		Button:Set("Saving...")
 		
 		local player = PlayerDropdown.CurrentOption[1]
+		print(player.Name)
 		
 		if workspace.Obbies:FindFirstChild(player.Name) then
 			if not game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) then
 				local Folder = Instance.new("Folder")
+				print("making folder")
 				Folder.Name = player.Name
+				print("folder made")
 				Folder.Parent = game.ReplicatedStorage.SavedObbies
 			end
 			
+			local Obby = workspace.Obbies:FindFirstChild(player.Name):Clone()
+			Obby.Name = Obby.ObbyNameVAL.Value.." | "..Obby.IdVAL.Value
+			Obby.Parent = game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name)
+			
+			--[[
 			if not game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(workspace.Obbies:FindFirstChild(player.Name).ObbyNameVAL.Value.." | "..workspace.Obbies:FindFirstChild(player.Name).IdVAL.Value) then
-				local Obby = workspace.Obbies:FindFirstChild(player.Name):Clone()
-				Obby.Name = Obby.ObbyNameVAL.Value.." | "..Obby.IdVAL.Value
-				Obby.Parent = game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name)
+				
 			else
 				notification("Notification:", "Obby has already been cloned previously!", 6.5, nil)
 			end
+			]]
 		else
 			notification("Error:", "Player selected currently doesn't exist. Please choose another player.", 6.5, "shield-alert")
 			if true then return end
