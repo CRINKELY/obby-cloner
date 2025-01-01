@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 24"
+local ver = "1.02 efficient 2"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -509,7 +509,15 @@ function ClonePartPropertiesEfficient(part: BasePart)
 			}, effectType, "Default")
 
 			for _, effectProperty in ipairs(PropertyTypes.EffectProperties[effectType]) do
-				local value = effectOrigin[effectProperty]
+				local propertyOrigin = effectOrigin
+				local parentProperties = {"SizingMode", "LightInfluence", "Brightness", "Face"}
+				local parentTypes = {"text", "image", "video"}
+
+				if table.find(parentProperties, effectProperty) and table.find(parentTypes, effectType) then
+					propertyOrigin = effectOrigin.Parent
+				end
+
+				local value = propertyOrigin[effectProperty]
 				if typeof(value) == "EnumItem" then value = value.Name end
 				if effectProperty == "Texture" then
 					value = string.sub(value, 13)
@@ -535,6 +543,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	NewPart.Parent = workspace.PartQueue
 	return tick() - startTime
 end
+
 
 local function getPlayerNames()
 	local plrs = {}
