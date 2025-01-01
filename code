@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 6"
+local ver = "1.01 test 7"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -253,6 +253,8 @@ function ClonePartProperties(part: BasePart)
 	coroutine.wrap(function()
 		Events.MoveObject:InvokeServer(unpack(args))
 	end)
+	
+	task.wait()
 
 	for i, property in pairs(PropertyTypes.PaintObject) do
 		if part.ClassName == "MeshPart" and property == "Shape" then continue end
@@ -280,6 +282,8 @@ function ClonePartProperties(part: BasePart)
 		coroutine.wrap(function()
 			Events.PaintObject:InvokeServer(unpack(args))
 		end)
+		
+		task.wait()
 	end
 	
 	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
@@ -310,6 +314,8 @@ function ClonePartProperties(part: BasePart)
 		coroutine.wrap(function()
 			Events.PaintObject:InvokeServer(unpack(args))
 		end)
+		
+		task.wait()
 	end
 	
 	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
@@ -378,6 +384,8 @@ function ClonePartProperties(part: BasePart)
 				coroutine.wrap(function()
 					Events.EffectObject:InvokeServer(unpack(args))
 				end)
+				
+				task.wait()
 			end
 		end
 	end
@@ -397,10 +405,14 @@ function ClonePartProperties(part: BasePart)
 			coroutine.wrap(function()
 				Events.BehaviourObject:InvokeServer(unpack(args))
 			end)
+			
+			task.wait()
 		end
 	end
 	
 	print("Successfully cloned one part")
+	
+	task.wait(0.1)
 	
 	if NewPart then
 		NewPart.Parent = workspace.PartQueue
