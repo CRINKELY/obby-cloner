@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 9.1"
+local ver = "1.01 test 10"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -252,9 +252,7 @@ function ClonePartProperties(part: BasePart)
 		}
 		
 		Events.MoveObject:InvokeServer(unpack(args))
-	end)
-	
-	task.wait()
+	end)()
 
 	for i, property in pairs(PropertyTypes.PaintObject) do
 		if part.ClassName == "MeshPart" and property == "Shape" then continue end
@@ -281,9 +279,7 @@ function ClonePartProperties(part: BasePart)
 			}
 			
 			Events.PaintObject:InvokeServer(unpack(args))
-		end)
-		
-		task.wait()
+		end)()
 	end
 	
 	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
@@ -313,9 +309,7 @@ function ClonePartProperties(part: BasePart)
 			}
 			
 			Events.PaintObject:InvokeServer(unpack(args))
-		end)
-		
-		task.wait()
+		end)()
 	end
 	
 	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
@@ -383,9 +377,7 @@ function ClonePartProperties(part: BasePart)
 					}
 					
 					Events.EffectObject:InvokeServer(unpack(args))
-				end)
-				
-				task.wait()
+				end)()
 			end
 		end
 	end
@@ -404,9 +396,7 @@ function ClonePartProperties(part: BasePart)
 				}
 				
 				Events.BehaviourObject:InvokeServer(unpack(args))
-			end)
-			
-			task.wait()
+			end)()
 		end
 	end
 	
