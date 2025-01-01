@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 test 5"
+local ver = "1.01 test 6"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -249,8 +249,10 @@ function ClonePartProperties(part: BasePart)
 			},
 		},
 	}
-
-	Events.MoveObject:InvokeServer(unpack(args))
+	
+	coroutine.wrap(function()
+		Events.MoveObject:InvokeServer(unpack(args))
+	end)
 
 	for i, property in pairs(PropertyTypes.PaintObject) do
 		if part.ClassName == "MeshPart" and property == "Shape" then continue end
@@ -275,7 +277,9 @@ function ClonePartProperties(part: BasePart)
 			[3] = value
 		}
 
-		Events.PaintObject:InvokeServer(unpack(args))
+		coroutine.wrap(function()
+			Events.PaintObject:InvokeServer(unpack(args))
+		end)
 	end
 	
 	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
@@ -303,7 +307,9 @@ function ClonePartProperties(part: BasePart)
 			[3] = value
 		}
 
-		Events.PaintObject:InvokeServer(unpack(args))
+		coroutine.wrap(function()
+			Events.PaintObject:InvokeServer(unpack(args))
+		end)
 	end
 	
 	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
@@ -369,7 +375,9 @@ function ClonePartProperties(part: BasePart)
 					[4] = propertyOrigin[effectProperty]
 				}
 
-				Events.EffectObject:InvokeServer(unpack(args))
+				coroutine.wrap(function()
+					Events.EffectObject:InvokeServer(unpack(args))
+				end)
 			end
 		end
 	end
@@ -386,21 +394,19 @@ function ClonePartProperties(part: BasePart)
 				[3] = part[behaviour.Name].Value,
 			}
 
-			Events.BehaviourObject:InvokeServer(unpack(args))
+			coroutine.wrap(function()
+				Events.BehaviourObject:InvokeServer(unpack(args))
+			end)
 		end
 	end
 	
 	print("Successfully cloned one part")
 	
-	NewPart.Parent = workspace.PartQueue
+	if NewPart then
+		NewPart.Parent = workspace.PartQueue
+	end
 	
 	print("Successfully parented")
-	
-	repeat 
-		task.wait() 
-		print(#Parts:GetChildren())
-	until #Parts:GetChildren() == 0
-	
 	print("Returning...")
 	
 	return tick() - startTime
@@ -613,6 +619,8 @@ ButtonClone = Cloner:CreateButton({
 
 				for i, part in pairs(partsFolder:GetChildren()) do
 					table.insert(seconds, ClonePartProperties(part))
+					print(getAverage(seconds))
+					
 					PartsCloned += 1
 					
 					ButtonClone:Set(`Cloning... ({math.round(PartsCloned/CalculatedPartsSize * 10000) / 100}%)`)
