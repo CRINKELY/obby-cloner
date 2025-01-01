@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 test 1"
+local ver = "1.02 test 2"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -262,6 +262,10 @@ function ClonePartProperties(part: BasePart)
 		if part.ClassName == "MeshPart" and property == "Shape" then continue end
 		
 		local value = part[property]
+		
+		if value == nil then
+			continue
+		end
 		
 		print(property, typeof(value))
 		
