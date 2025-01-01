@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 13"
+local ver = "1.01 test 14"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -182,10 +182,10 @@ if not game.ReplicatedStorage:FindFirstChild("SavedObbies") then
 	SavedObbies.Parent = game.ReplicatedStorage
 end
 
-if not game.ReplicatedStorage:FindFirstChild("PartQueue") then
-	local PartQueue = Instance.new("Folder")
-	PartQueue.Name = "PartQueue"
-	PartQueue.Parent = workspace
+if not game.ReplicatedStorage:FindFirstChild("Tags") then
+	local SavedObbies = Instance.new("Folder")
+	SavedObbies.Name = "Tags"
+	SavedObbies.Parent = game.ReplicatedStorage
 end
 
 function notification(title, content, duration, image) -- "shield-alert" for errors
@@ -217,6 +217,27 @@ function GetSelectedObby()
 	return plr, workspace.Obbies:FindFirstChild(plr.Name).GetObby.Gate.CFrame - Vector3.new(0, 3, 0) - Vector3.new(0, 0.5, 0) + (workspace.Obbies:FindFirstChild(plr.Name).GetObby.Gate.CFrame.LookVector * 0.5)
 end
 
+local function GenerateName()
+	local characters = "abcdef0123456789"
+	local name = ""
+
+	for i = 1, 16, 1 do
+		local randomIndex = math.random(1, #characters)
+		name = name .. string.sub(characters, randomIndex, randomIndex)
+	end
+
+	return name
+end
+
+function GenerateTag(part: Instance)
+	local Tag = Instance.new("ObjectValue")
+	Tag.Value = part
+	Tag.Name = GenerateName()
+	Tag.Parent = game.ReplicatedStorage.Tags
+	
+	return Tag
+end
+
 function ClonePartProperties(part: BasePart)
 	local plr, obbyCFrame = GetSelectedObby()
 	local startTime = tick()
@@ -236,7 +257,9 @@ function ClonePartProperties(part: BasePart)
 
 	Events.AddObject:InvokeServer(unpack(args))
 	
-	local NewPart = Parts:GetChildren()[1]
+	local Tag = GenerateTag(Parts:GetChildren()[1])
+	
+	local NewPart = Tag.Value
 	
 	task.wait()
 	
@@ -280,6 +303,8 @@ function ClonePartProperties(part: BasePart)
 			
 			Events.PaintObject:InvokeServer(unpack(args))
 		end)()
+		
+		task.wait()
 	end
 	
 	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
@@ -310,6 +335,8 @@ function ClonePartProperties(part: BasePart)
 			
 			Events.PaintObject:InvokeServer(unpack(args))
 		end)()
+		
+		task.wait()
 	end
 	
 	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
@@ -363,14 +390,16 @@ function ClonePartProperties(part: BasePart)
 				end
 				
 				print("Attributes:", table.concat(part:GetAttributes(), ","), effectProperty)
-				print(if table.find(part:GetAttributes(), effectProperty) ~= nil then true else false)
+				print(if effectType == "prompt" and table.find(part.ProximityPrompt:GetAttributes(), effectProperty) ~= nil then true else false)
 				
-				if table.find(part:GetAttributes(), effectProperty) ~= nil then
-					value = part:GetAttributes()[table.find(part:GetAttributes(), effectProperty)]
+				if effectType == "prompt" then
+					if effectProperty == "BackgroundColor" or "BackgroundTransparency" then
+						value = effectOrigin:GetAttribute(effectProperty)
+					end
 				end
 				
-				if typeof(value) == "string" then
-					value = string.gsub(value, "rbxassetid://", "")
+				if effectProperty == "Texture" then
+					value = string.sub(value, 13, 9999999)
 				end
 
 				coroutine.wrap(function()
@@ -405,16 +434,7 @@ function ClonePartProperties(part: BasePart)
 		end
 	end
 	
-	print("Successfully cloned one part")
-	
-	task.wait(1)
-	
-	if NewPart then
-		NewPart.Parent = workspace.PartQueue
-	end
-	
-	print("Successfully parented")
-	print("Returning...")
+	game.Debris:AddItem(Tag, 0.01)
 	
 	return tick() - startTime
 end
@@ -604,6 +624,8 @@ ButtonClone = Cloner:CreateButton({
 			local seconds = {}
 			
 			local function getAverage(tabl)
+				if #tabl == 0 then return 0 end
+				
 				local total = 0
 				
 				for i, value in pairs(tabl) do
@@ -625,12 +647,14 @@ ButtonClone = Cloner:CreateButton({
 				if table.find(BlacklistedFolders, partsFolder.Name) then continue end
 
 				for i, part in pairs(partsFolder:GetChildren()) do
-					table.insert(seconds, ClonePartProperties(part))
-					print(getAverage(seconds))
+					table.insert(seconds, coroutine.wrap(ClonePartProperties)(part))
+					task.wait(1)
+					
+					notification("Obby Cloner", `Average seconds per part: {math.floor(getAverage(seconds) * 1000) / 1000}`, 0.5, "bell")
 					
 					PartsCloned += 1
 					
-					ButtonClone:Set(`Cloning... ({math.round(PartsCloned/CalculatedPartsSize * 10000) / 100}%)`)
+					ButtonClone:Set(`Cloning... ({math.round(PartsCloned/CalculatedPartsSize * 100) / 100}%)`)
 				end
 			end
 
