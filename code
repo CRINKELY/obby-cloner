@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 7"
+local ver = "1.01 test 8"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -239,18 +239,18 @@ function ClonePartProperties(part: BasePart)
 	local NewPart = Parts:GetChildren()[1]
 	
 	task.wait()
-
-	local args = {
-		[1] = { -- parts
-			[1] = { -- part
-				[1] = NewPart,
-				[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)), -- pos, rot
-				[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z) -- size
-			},
-		},
-	}
 	
 	coroutine.wrap(function()
+		local args = {
+			[1] = { -- parts
+				[1] = { -- part
+					[1] = NewPart,
+					[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)), -- pos, rot
+					[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z) -- size
+				},
+			},
+		}
+		
 		Events.MoveObject:InvokeServer(unpack(args))
 	end)
 	
@@ -270,16 +270,16 @@ function ClonePartProperties(part: BasePart)
 		if typeof(value) == "Enums" or typeof(value) == "Enum" or typeof(value) == "EnumItem" then
 			value = value.Name
 		end
-		
-		local args = {
-			[1] = { -- parts
-				[1] = NewPart
-			},
-			[2] = property,
-			[3] = value
-		}
 
 		coroutine.wrap(function()
+			local args = {
+				[1] = { -- parts
+					[1] = NewPart
+				},
+				[2] = property,
+				[3] = value
+			}
+			
 			Events.PaintObject:InvokeServer(unpack(args))
 		end)
 		
@@ -303,15 +303,15 @@ function ClonePartProperties(part: BasePart)
 		
 		print(property, typeof(value))
 
-		local args = {
-			[1] = { -- parts
-				NewPart
-			},
-			[2] = property,
-			[3] = value
-		}
-
 		coroutine.wrap(function()
+			local args = {
+				[1] = { -- parts
+					NewPart
+				},
+				[2] = property,
+				[3] = value
+			}
+			
 			Events.PaintObject:InvokeServer(unpack(args))
 		end)
 		
@@ -371,17 +371,17 @@ function ClonePartProperties(part: BasePart)
 				if table.find(part:GetAttributes(), effectProperty) and effectType == "prompt" then
 					value = part:GetAttributes()[table.find(part:GetAttributes(), effectProperty)]
 				end
-				
-				local args = {
-					[1] = { -- parts
-						NewPart
-					},
-					[2] = effectType,
-					[3] = effectProperty,
-					[4] = propertyOrigin[effectProperty]
-				}
 
 				coroutine.wrap(function()
+					local args = {
+						[1] = { -- parts
+							NewPart
+						},
+						[2] = effectType,
+						[3] = effectProperty,
+						[4] = propertyOrigin[effectProperty]
+					}
+					
 					Events.EffectObject:InvokeServer(unpack(args))
 				end)
 				
@@ -394,15 +394,15 @@ function ClonePartProperties(part: BasePart)
 		print(behaviour.Name, part[behaviour.Name].Value)
 		
 		if behaviour:IsA("ValueBase") then
-			local args = {
-				[1] = { -- parts
-					NewPart
-				},
-				[2] = behaviour.Name, -- found inside of the part as objectvalues
-				[3] = part[behaviour.Name].Value,
-			}
-
 			coroutine.wrap(function()
+				local args = {
+					[1] = { -- parts
+						NewPart
+					},
+					[2] = behaviour.Name, -- found inside of the part as objectvalues
+					[3] = part[behaviour.Name].Value,
+				}
+				
 				Events.BehaviourObject:InvokeServer(unpack(args))
 			end)
 			
