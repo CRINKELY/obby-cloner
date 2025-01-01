@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 test 2"
+local ver = "1.01 test 3"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -393,6 +393,12 @@ function ClonePartProperties(part: BasePart)
 	end
 	
 	NewPart.Parent = workspace.PartQueue:FindFirstChild(Parts.Name)
+	
+	repeat 
+		task.wait() 
+		print(#Parts:GetChildren())
+	until #Parts:GetChildren() == 0
+	
 	return tick() - startTime
 end
 
