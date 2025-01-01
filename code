@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 16"
+local ver = "1.01 test 17"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -94,8 +94,6 @@ local PropertyTypes = {
 		},
 		["prompt"] = {
 			"ActionText",
-			"BackgroundColor", -- in attributes
-			"BackgroundTransparency", -- in attributes
 			"GamepadKeyCode",
 			"HoldDuration",
 			"KeyboardKeyCode",
@@ -386,25 +384,9 @@ function ClonePartProperties(part: BasePart)
 				end
 				
 				if effectProperty == "Texture" then
-					value = tostring(propertyOrigin[effectProperty])
+					value = string.sub(propertyOrigin[effectProperty], 13, 9999999)
 				end
 				
-				print("Attributes:", table.concat(part.ProximityPrompt:GetAttributes(), ","), effectProperty)
-				print(effectType)
-				
-				if effectType == "prompt" then
-					print("Effect type is prompt")
-					if effectProperty == "BackgroundColor" or "BackgroundTransparency" then
-						print("Setting value to attribute value")
-						value = part.ProximityPrompt:GetAttribute(effectProperty)
-						print(part.ProximityPrompt:GetAttribute(effectProperty))
-					end
-				end
-				
-				if effectProperty == "Texture" then
-					value = string.sub(value, 13, 9999999)
-				end
-
 				coroutine.wrap(function()
 					local args = {
 						[1] = { -- parts
