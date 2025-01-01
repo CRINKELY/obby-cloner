@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 17"
+local ver = "1.01 test 18"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -180,12 +180,6 @@ if not game.ReplicatedStorage:FindFirstChild("SavedObbies") then
 	SavedObbies.Parent = game.ReplicatedStorage
 end
 
-if not game.ReplicatedStorage:FindFirstChild("Tags") then
-	local SavedObbies = Instance.new("Folder")
-	SavedObbies.Name = "Tags"
-	SavedObbies.Parent = game.ReplicatedStorage
-end
-
 function notification(title, content, duration, image) -- "shield-alert" for errors
 	Rayfield:Notify({
 		Title = title or "Obby Cloner",
@@ -255,9 +249,7 @@ function ClonePartProperties(part: BasePart)
 
 	Events.AddObject:InvokeServer(unpack(args))
 	
-	local Tag = GenerateTag(Parts:GetChildren()[1])
-	
-	local NewPart = Tag.Value
+	local NewPart = Parts:GetChildren()[1]
 	
 	task.wait()
 	
@@ -419,7 +411,7 @@ function ClonePartProperties(part: BasePart)
 		end
 	end
 	
-	game.Debris:AddItem(Tag, 0.01)
+	NewPart.Name = GenerateName()
 	
 	return tick() - startTime
 end
