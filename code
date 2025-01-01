@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 18"
+local ver = "1.01 test 19"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -178,6 +178,12 @@ if not game.ReplicatedStorage:FindFirstChild("SavedObbies") then
 	local SavedObbies = Instance.new("Folder")
 	SavedObbies.Name = "SavedObbies"
 	SavedObbies.Parent = game.ReplicatedStorage
+end
+
+if not workspace:FindFirstChild("PartQueue") then
+	local SavedObbies = Instance.new("Folder")
+	SavedObbies.Name = "PartQueue"
+	SavedObbies.Parent = workspace
 end
 
 function notification(title, content, duration, image) -- "shield-alert" for errors
@@ -411,7 +417,7 @@ function ClonePartProperties(part: BasePart)
 		end
 	end
 	
-	NewPart.Name = GenerateName()
+	NewPart.Parent = workspace.PartQueue
 	
 	return tick() - startTime
 end
