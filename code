@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 3"
+local ver = "1.01 test 4"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -273,8 +273,6 @@ function ClonePartProperties(part: BasePart)
 			value = value.Name
 		end
 		
-		print("Passed enum check")
-		
 		local args = {
 			[1] = { -- parts
 				[1] = NewPart
@@ -300,6 +298,8 @@ function ClonePartProperties(part: BasePart)
 				value = part.CustomPhysicalProperties.FrictionWeight
 			end
 		end
+		
+		print(property, typeof(value))
 
 		local args = {
 			[1] = { -- parts
@@ -313,6 +313,8 @@ function ClonePartProperties(part: BasePart)
 	end
 	
 	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
+		print(effectType, effectIndex)
+		
 		if part:FindFirstChild(effectIndex) ~= nil then
 			local effectOrigin = part:FindFirstChild(effectIndex)
 			
@@ -379,6 +381,8 @@ function ClonePartProperties(part: BasePart)
 	end
 	
 	for i, behaviour: ValueBase in pairs(part:GetChildren()) do
+		print(behaviour.Name, part[behaviour.Name].Value)
+		
 		if behaviour:IsA("ValueBase") then
 			local args = {
 				[1] = { -- parts
@@ -392,12 +396,18 @@ function ClonePartProperties(part: BasePart)
 		end
 	end
 	
+	print("Successfully cloned one part")
+	
 	NewPart.Parent = workspace.PartQueue:FindFirstChild(Parts.Name)
+	
+	print("Successfully parented")
 	
 	repeat 
 		task.wait() 
 		print(#Parts:GetChildren())
 	until #Parts:GetChildren() == 0
+	
+	print("Returning...")
 	
 	return tick() - startTime
 end
