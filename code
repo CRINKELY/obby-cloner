@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 11.1"
+local ver = "1.01 test 12"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -383,7 +383,7 @@ function ClonePartProperties(part: BasePart)
 	end
 	
 	for i, behaviour: ValueBase in pairs(part:GetChildren()) do
-		if behaviour:IsA("ValueBase") and not part[behaviour.Name]:IsA("Folder") then
+		if behaviour:IsA("ValueBase") and not part[behaviour.Name]:IsA("Folder") and not string.find(behaviour.Name, "Link") then
 			coroutine.wrap(function()
 				local args = {
 					[1] = { -- parts
