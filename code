@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01"
+local ver = "1.02 test 1"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -225,6 +225,7 @@ end
 
 function ClonePartProperties(part: BasePart)
 	local plr, obbyCFrame = GetSelectedObby()
+	local startTime = tick()
 
 	if plr == nil then
 		notification("Error:", "No obby is currently being edited.", 6.5, "shield-alert")
@@ -387,11 +388,8 @@ function ClonePartProperties(part: BasePart)
 		end
 	end
 	
-	for i = 1, SpeedSlider.CurrentValue - 1, 1 do
-		task.wait()
-	end
-	
 	NewPart.Parent = workspace.PartQueue:FindFirstChild(Parts.Name)
+	return tick() - startTime
 end
 
 local function getPlayerNames()
@@ -576,14 +574,16 @@ ButtonClone = Cloner:CreateButton({
 			local CalculatedPartsSize = 0
 			local PartsCloned = 0
 			
-			local function GetEstimatedTimeLeft()
-				local PartsLeft = CalculatedPartsSize - PartsCloned
-				local SecondsLeft = (PartsLeft * SpeedSlider.CurrentValue) / 60
-				local MinutesLeft = math.floor(SecondsLeft / 60)
-				local RemainingSeconds = math.floor(SecondsLeft % 60)
-				return string.format("%d minute%s and %d second%s left", 
-					MinutesLeft, MinutesLeft ~= 1 and "s" or "", 
-					RemainingSeconds, RemainingSeconds ~= 1 and "s" or "")
+			local seconds = {}
+			
+			local function getAverage(tabl)
+				local total = 0
+				
+				for i, value in pairs(tabl) do
+					total += value
+				end
+				
+				return total / #tabl
 			end
 
 			for i, partsFolder in pairs(Obby:GetChildren()) do
@@ -598,14 +598,15 @@ ButtonClone = Cloner:CreateButton({
 				if table.find(BlacklistedFolders, partsFolder.Name) then continue end
 
 				for i, part in pairs(partsFolder:GetChildren()) do
-					ClonePartProperties(part)
+					table.insert(seconds, ClonePartProperties(part))
 					PartsCloned += 1
 					
-					ButtonClone:Set(`Cloning... {GetEstimatedTimeLeft()} ({math.round(PartsCloned/CalculatedPartsSize * 10000) / 100}%)`)
+					ButtonClone:Set(`Cloning... ({math.round(PartsCloned/CalculatedPartsSize * 10000) / 100}%)`)
 				end
 			end
 
 			notification("Obby Cloner", "Obby has been cloned! Enjoy :)", 4, "bell")
+			notification("Obby Cloner", `Average seconds per part: {math.floor(getAverage(seconds) * 1000) / 1000}`, 4, "bell")
 			CloneCooldown = false
 			ButtonClone:Set("Clone Obby")
 		end)
