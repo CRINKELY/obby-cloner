@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 4"
+local ver = "1.02 test 5"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -186,12 +186,6 @@ if not game.ReplicatedStorage:FindFirstChild("PartQueue") then
 	local PartQueue = Instance.new("Folder")
 	PartQueue.Name = "PartQueue"
 	PartQueue.Parent = workspace
-	
-	for i, folder in pairs(PartFolders) do
-		local Folder = Instance.new("Folder")
-		Folder.Name = folder
-		Folder.Parent = PartQueue
-	end
 end
 
 function notification(title, content, duration, image) -- "shield-alert" for errors
@@ -398,7 +392,7 @@ function ClonePartProperties(part: BasePart)
 	
 	print("Successfully cloned one part")
 	
-	NewPart.Parent = workspace.PartQueue:FindFirstChild(Parts.Name)
+	NewPart.Parent = workspace.PartQueue
 	
 	print("Successfully parented")
 	
