@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 12"
+local ver = "1.01 test 13"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -362,8 +362,15 @@ function ClonePartProperties(part: BasePart)
 					value = tostring(propertyOrigin[effectProperty])
 				end
 				
-				if table.find(part:GetAttributes(), effectProperty) and effectType == "prompt" then
+				print("Attributes:", table.concat(part:GetAttributes(), ","), effectProperty)
+				print(if table.find(part:GetAttributes(), effectProperty) ~= nil then true else false)
+				
+				if table.find(part:GetAttributes(), effectProperty) ~= nil then
 					value = part:GetAttributes()[table.find(part:GetAttributes(), effectProperty)]
+				end
+				
+				if typeof(value) == "string" then
+					value = string.gsub(value, "rbxassetid://", "")
 				end
 
 				coroutine.wrap(function()
