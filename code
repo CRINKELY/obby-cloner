@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 15"
+local ver = "1.01 test 16"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -304,7 +304,7 @@ function ClonePartProperties(part: BasePart)
 			Events.PaintObject:InvokeServer(unpack(args))
 		end)()
 		
-		task.wait()
+		task.wait(SpeedSlider.CurrentValue)
 	end
 	
 	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
@@ -390,12 +390,12 @@ function ClonePartProperties(part: BasePart)
 				end
 				
 				print("Attributes:", table.concat(part.ProximityPrompt:GetAttributes(), ","), effectProperty)
-				print(if effectType == "prompt" and table.find(part.ProximityPrompt:GetAttributes(), effectProperty) ~= nil then true else false)
+				print(effectType)
 				
 				if effectType == "prompt" then
-					print("Effect type is prompt, effect property is", effectProperty)
+					print("Effect type is prompt")
 					if effectProperty == "BackgroundColor" or "BackgroundTransparency" then
-						print(effectProperty)
+						print("Setting value to attribute value")
 						value = part.ProximityPrompt:GetAttribute(effectProperty)
 						print(part.ProximityPrompt:GetAttribute(effectProperty))
 					end
@@ -412,7 +412,7 @@ function ClonePartProperties(part: BasePart)
 						},
 						[2] = effectType,
 						[3] = effectProperty,
-						[4] = propertyOrigin[effectProperty]
+						[4] = value
 					}
 					
 					Events.EffectObject:InvokeServer(unpack(args))
@@ -582,11 +582,11 @@ ClonerInput = Cloner:CreateInput({
 })
 
 SpeedSlider = Cloner:CreateSlider({
-	Name = "Frame Delay",
-	Range = {2, 10},
-	Increment = 1,
-	Suffix = "Frames",
-	CurrentValue = 2,
+	Name = "Time Delay for PaintObject",
+	Range = {0, 0.2},
+	Increment = 0.01,
+	Suffix = "second(s)",
+	CurrentValue = 0,
 	Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 	Callback = function(Value)
 		-- The function that takes place when the slider changes
@@ -650,13 +650,10 @@ ButtonClone = Cloner:CreateButton({
 				if table.find(BlacklistedFolders, partsFolder.Name) then continue end
 
 				for i, part in pairs(partsFolder:GetChildren()) do
-					table.insert(seconds, coroutine.wrap(ClonePartProperties)(part))
-					task.wait(1)
-					
-					notification("Obby Cloner", `Average seconds per part: {math.floor(getAverage(seconds) * 1000) / 1000}`, 0.5, "bell")
-					
+					table.insert(seconds, ClonePartProperties(part))
 					PartsCloned += 1
 					
+					notification("Obby Cloner", `Average seconds per part: {math.floor(getAverage(seconds) * 1000) / 1000}`, 0.5, "bell")
 					ButtonClone:Set(`Cloning... ({math.round(PartsCloned/CalculatedPartsSize * 100) / 100}%)`)
 				end
 			end
