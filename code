@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 23"
+local ver = "1.01 test 24"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -424,6 +424,118 @@ function ClonePartProperties(part: BasePart)
 	return tick() - startTime
 end
 
+function ClonePartPropertiesEfficient(part: BasePart)
+	local plr, obbyCFrame = GetSelectedObby()
+	local startTime = tick()
+
+	if plr == nil then
+		notification("Error:", "No obby is currently being edited.", 6.5, "shield-alert")
+		return
+	end
+
+	local Obby = workspace.Obbies:FindFirstChild(plr.Name)
+	if not Obby then return end
+
+	local Parts = Obby.Items:FindFirstChild(part.Parent.Name)
+	if not Parts then return end
+
+	local args = {
+		[1] = part.Name,
+		[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
+	}
+	Events.AddObject:InvokeServer(unpack(args))
+
+	local NewPart = Parts:GetChildren()[1]
+	if not NewPart then return end
+
+	task.wait()
+
+	local moveArgs = {
+		[1] = {
+			[1] = {
+				NewPart,
+				CFrame.new(part.Position) * CFrame.Angles(
+					math.rad(part.Rotation.X),
+					math.rad(part.Rotation.Y),
+					math.rad(part.Rotation.Z)
+				),
+				Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+			},
+		},
+	}
+	Events.MoveObject:InvokeServer(unpack(moveArgs))
+
+	for _, property in ipairs(PropertyTypes.PaintObject) do
+		if part.ClassName == "MeshPart" and property == "Shape" then continue end
+		local value = part[property]
+		if value ~= nil then
+			if typeof(value) == "EnumItem" then value = value.Name end
+			Events.PaintObject:InvokeServer({
+				NewPart
+			}, property, value)
+			task.wait()
+			task.wait()
+		end
+	end
+
+	for _, property in ipairs(PropertyTypes.SpecialPaintObject) do
+		local value = nil
+		if property == "Water" and part:FindFirstChild("AttributeLinks") then
+			value = part.AttributeLinks:FindFirstChild("Water") ~= nil
+		elseif property == "Surface" then
+			value = part.FrontSurface.Name
+		elseif property == "Slipperiness" and part.CustomPhysicalProperties then
+			value = part.CustomPhysicalProperties.FrictionWeight
+		end
+
+		if value ~= nil then
+			Events.PaintObject:InvokeServer({
+				NewPart
+			}, property, value)
+			task.wait()
+			task.wait()
+		end
+	end
+
+	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
+		local effectOrigin = part:FindFirstChild(effectIndex)
+		if effectOrigin then
+			if effectOrigin:FindFirstChild(effectIndex) then
+				effectOrigin = effectOrigin[effectIndex]
+			end
+
+			Events.EffectObject:InvokeServer({
+				NewPart
+			}, effectType, "Default")
+
+			for _, effectProperty in ipairs(PropertyTypes.EffectProperties[effectType]) do
+				local value = effectOrigin[effectProperty]
+				if typeof(value) == "EnumItem" then value = value.Name end
+				if effectProperty == "Texture" then
+					value = string.sub(value, 13)
+				end
+
+				if value ~= nil then
+					Events.EffectObject:InvokeServer({
+						NewPart
+					}, effectType, effectProperty, value)
+				end
+			end
+		end
+	end
+
+	for _, behaviour in ipairs(part:GetChildren()) do
+		if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
+			Events.BehaviourObject:InvokeServer({
+				NewPart
+			}, behaviour.Name, behaviour.Value)
+		end
+	end
+
+	NewPart.Parent = workspace.PartQueue
+	return tick() - startTime
+end
+
 local function getPlayerNames()
 	local plrs = {}
 
@@ -619,10 +731,10 @@ ButtonClone = Cloner:CreateButton({
 				if table.find(BlacklistedFolders, partsFolder.Name) then continue end
 
 				for i, part in pairs(partsFolder:GetChildren()) do
-					table.insert(seconds, ClonePartProperties(part))
+					table.insert(seconds, ClonePartPropertiesEfficient(part))
 					PartsCloned += 1
 					
-					notification("Obby Cloner", `Average seconds per part: {math.floor(getAverage(seconds) * 1000) / 1000}`, 0.5, "bell")
+					notification("Obby Cloner", `Average seconds per part: {math.floor(getAverage(seconds) * 1000) / 1000}`, 1, "bell")
 					ButtonClone:Set(`Cloning... ({math.round(PartsCloned/CalculatedPartsSize * 100) / 100}%)`)
 				end
 			end
