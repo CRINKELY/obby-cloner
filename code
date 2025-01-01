@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.01 test 14"
+local ver = "1.01 test 15"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -389,12 +389,15 @@ function ClonePartProperties(part: BasePart)
 					value = tostring(propertyOrigin[effectProperty])
 				end
 				
-				print("Attributes:", table.concat(part:GetAttributes(), ","), effectProperty)
+				print("Attributes:", table.concat(part.ProximityPrompt:GetAttributes(), ","), effectProperty)
 				print(if effectType == "prompt" and table.find(part.ProximityPrompt:GetAttributes(), effectProperty) ~= nil then true else false)
 				
 				if effectType == "prompt" then
+					print("Effect type is prompt, effect property is", effectProperty)
 					if effectProperty == "BackgroundColor" or "BackgroundTransparency" then
-						value = effectOrigin:GetAttribute(effectProperty)
+						print(effectProperty)
+						value = part.ProximityPrompt:GetAttribute(effectProperty)
+						print(part.ProximityPrompt:GetAttribute(effectProperty))
 					end
 				end
 				
