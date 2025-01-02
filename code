@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 efficient 9"
+local ver = "1.02 efficient 10"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -500,7 +500,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				local args = { {NewPart}, property, value }
 				Events.PaintObject:InvokeServer(unpack(args))
 
-				task.wait(0.07)
+				task.wait(0.1)
 			end
 		end
 	end)
@@ -565,7 +565,6 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	return tick() - startTime
 end
-
 
 local function getPlayerNames()
 	local plrs = {}
