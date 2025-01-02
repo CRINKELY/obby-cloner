@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 efficient 5"
+local ver = "1.02 efficient 6"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -443,12 +443,25 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		[1] = part.Name,
 		[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
 	}
+	
 	Events.AddObject:InvokeServer(unpack(args))
 
 	local NewPart = Parts:GetChildren()[1]
 	if not NewPart then return end
+	
+	coroutine.wrap(function()
+		local args = {
+			[1] = { -- parts
+				[1] = { -- part
+					[1] = NewPart,
+					[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)), -- pos, rot
+					[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z) -- size
+				},
+			},
+		}
 
-	task.wait()
+		Events.MoveObject:InvokeServer(unpack(args))
+	end)()
 
 	local paintTask = coroutine.create(function()
 		for _, property in ipairs(PropertyTypes.PaintObject) do
