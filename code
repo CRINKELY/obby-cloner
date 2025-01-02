@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 efficient 10"
+local ver = "1.02 efficient 11"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -475,12 +475,12 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 				Events.PaintObject:InvokeServer(unpack(args))
 
-				task.wait(0.07)
+				for frames = 1, 2 do
+					task.wait()
+				end
 			end
 		end
-	end)
-
-	local specialPaintTask = coroutine.create(function()
+		
 		for _, property in ipairs(PropertyTypes.SpecialPaintObject) do
 			local value
 
@@ -500,7 +500,9 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				local args = { {NewPart}, property, value }
 				Events.PaintObject:InvokeServer(unpack(args))
 
-				task.wait(0.1)
+				for frames = 1, 2 do
+					task.wait()
+				end
 			end
 		end
 	end)
@@ -551,11 +553,10 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	end)
 
 	coroutine.resume(paintTask)
-	coroutine.resume(specialPaintTask)
 	coroutine.resume(effectTask)
 	coroutine.resume(behaviorTask)
 
-	while coroutine.status(paintTask) ~= "dead" or coroutine.status(specialPaintTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
+	while coroutine.status(paintTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
 		task.wait()
 	end
 
