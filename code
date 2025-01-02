@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 efficient 4"
+local ver = "1.02 efficient 4.1"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -424,9 +424,6 @@ function ClonePartProperties(part: BasePart)
 	return tick() - startTime
 end
 
-
-
-
 local function getPlayerNames()
 	local plrs = {}
 
@@ -723,6 +720,8 @@ ButtonClone = Cloner:CreateButton({
 				for i, part in pairs(partsFolder:GetChildren()) do
 					table.insert(seconds, ClonePartPropertiesEfficient(part))
 					PartsCloned += 1
+					
+					task.wait(1)
 					
 					notification("Obby Cloner", `Average seconds per part: {math.floor(getAverage(seconds) * 1000) / 1000}`, 1, "bell")
 					ButtonClone:Set(`Cloning... ({math.round(PartsCloned/CalculatedPartsSize * 100) / 100}%)`)
