@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 efficient 2"
+local ver = "1.02 efficient 3"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -465,6 +465,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	}
 	Events.MoveObject:InvokeServer(unpack(moveArgs))
 
+	-- PaintObject loop
 	for _, property in ipairs(PropertyTypes.PaintObject) do
 		if part.ClassName == "MeshPart" and property == "Shape" then continue end
 		local value = part[property]
@@ -478,67 +479,58 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		end
 	end
 
-	for _, property in ipairs(PropertyTypes.SpecialPaintObject) do
-		local value = nil
-		if property == "Water" and part:FindFirstChild("AttributeLinks") then
-			value = part.AttributeLinks:FindFirstChild("Water") ~= nil
-		elseif property == "Surface" then
-			value = part.FrontSurface.Name
-		elseif property == "Slipperiness" and part.CustomPhysicalProperties then
-			value = part.CustomPhysicalProperties.FrictionWeight
-		end
-
-		if value ~= nil then
-			Events.PaintObject:InvokeServer({
-				NewPart
-			}, property, value)
-			task.wait()
-			task.wait()
-		end
-	end
-
-	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
-		local effectOrigin = part:FindFirstChild(effectIndex)
-		if effectOrigin then
-			if effectOrigin:FindFirstChild(effectIndex) then
-				effectOrigin = effectOrigin[effectIndex]
-			end
-
-			Events.EffectObject:InvokeServer({
-				NewPart
-			}, effectType, "Default")
-
-			for _, effectProperty in ipairs(PropertyTypes.EffectProperties[effectType]) do
-				local propertyOrigin = effectOrigin
-				local parentProperties = {"SizingMode", "LightInfluence", "Brightness", "Face"}
-				local parentTypes = {"text", "image", "video"}
-
-				if table.find(parentProperties, effectProperty) and table.find(parentTypes, effectType) then
-					propertyOrigin = effectOrigin.Parent
+	-- Encasing effects in coroutines
+	coroutine.wrap(function()
+		for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
+			local effectOrigin = part:FindFirstChild(effectIndex)
+			if effectOrigin then
+				if effectOrigin:FindFirstChild(effectIndex) then
+					effectOrigin = effectOrigin[effectIndex]
 				end
 
-				local value = propertyOrigin[effectProperty]
-				if typeof(value) == "EnumItem" then value = value.Name end
-				if effectProperty == "Texture" then
-					value = string.sub(value, 13)
-				end
+				Events.EffectObject:InvokeServer({
+					NewPart
+				}, effectType, "Default")
 
-				if value ~= nil then
-					Events.EffectObject:InvokeServer({
-						NewPart
-					}, effectType, effectProperty, value)
+				for _, effectProperty in ipairs(PropertyTypes.EffectProperties[effectType]) do
+					local propertyOrigin = effectOrigin
+					local parentProperties = { "SizingMode", "LightInfluence", "Brightness", "Face" }
+					local parentTypes = { "text", "image", "video" }
+
+					if table.find(parentProperties, effectProperty) and table.find(parentTypes, effectType) then
+						propertyOrigin = effectOrigin.Parent
+					end
+
+					local value = propertyOrigin[effectProperty]
+					if typeof(value) == "EnumItem" then value = value.Name end
+					if effectProperty == "Texture" then
+						value = string.sub(value, 13)
+					end
+
+					if value ~= nil then
+						Events.EffectObject:InvokeServer({
+							NewPart
+						}, effectType, effectProperty, value)
+					end
 				end
 			end
 		end
-	end
+	end)()
 
-	for _, behaviour in ipairs(part:GetChildren()) do
-		if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
-			Events.BehaviourObject:InvokeServer({
-				NewPart
-			}, behaviour.Name, behaviour.Value)
+	-- Encasing behaviors in coroutines
+	coroutine.wrap(function()
+		for _, behaviour in ipairs(part:GetChildren()) do
+			if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
+				Events.BehaviourObject:InvokeServer({
+					NewPart
+				}, behaviour.Name, behaviour.Value)
+			end
 		end
-	end
+	end)()
+
+	-- Add a delay only for PaintObject processing
+	task.wait()
+	task.wait()
 
 	NewPart.Parent = workspace.PartQueue
 	return tick() - startTime
