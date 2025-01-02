@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 efficient 3"
+local ver = "1.02 efficient 4"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -424,117 +424,7 @@ function ClonePartProperties(part: BasePart)
 	return tick() - startTime
 end
 
-function ClonePartPropertiesEfficient(part: BasePart)
-	local plr, obbyCFrame = GetSelectedObby()
-	local startTime = tick()
 
-	if plr == nil then
-		notification("Error:", "No obby is currently being edited.", 6.5, "shield-alert")
-		return
-	end
-
-	local Obby = workspace.Obbies:FindFirstChild(plr.Name)
-	if not Obby then return end
-
-	local Parts = Obby.Items:FindFirstChild(part.Parent.Name)
-	if not Parts then return end
-
-	local args = {
-		[1] = part.Name,
-		[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
-	}
-	Events.AddObject:InvokeServer(unpack(args))
-
-	local NewPart = Parts:GetChildren()[1]
-	if not NewPart then return end
-
-	task.wait()
-
-	local moveArgs = {
-		[1] = {
-			[1] = {
-				NewPart,
-				CFrame.new(part.Position) * CFrame.Angles(
-					math.rad(part.Rotation.X),
-					math.rad(part.Rotation.Y),
-					math.rad(part.Rotation.Z)
-				),
-				Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
-			},
-		},
-	}
-	Events.MoveObject:InvokeServer(unpack(moveArgs))
-
-	-- PaintObject loop
-	for _, property in ipairs(PropertyTypes.PaintObject) do
-		if part.ClassName == "MeshPart" and property == "Shape" then continue end
-		local value = part[property]
-		if value ~= nil then
-			if typeof(value) == "EnumItem" then value = value.Name end
-			Events.PaintObject:InvokeServer({
-				NewPart
-			}, property, value)
-			task.wait()
-			task.wait()
-		end
-	end
-
-	-- Encasing effects in coroutines
-	coroutine.wrap(function()
-		for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
-			local effectOrigin = part:FindFirstChild(effectIndex)
-			if effectOrigin then
-				if effectOrigin:FindFirstChild(effectIndex) then
-					effectOrigin = effectOrigin[effectIndex]
-				end
-
-				Events.EffectObject:InvokeServer({
-					NewPart
-				}, effectType, "Default")
-
-				for _, effectProperty in ipairs(PropertyTypes.EffectProperties[effectType]) do
-					local propertyOrigin = effectOrigin
-					local parentProperties = { "SizingMode", "LightInfluence", "Brightness", "Face" }
-					local parentTypes = { "text", "image", "video" }
-
-					if table.find(parentProperties, effectProperty) and table.find(parentTypes, effectType) then
-						propertyOrigin = effectOrigin.Parent
-					end
-
-					local value = propertyOrigin[effectProperty]
-					if typeof(value) == "EnumItem" then value = value.Name end
-					if effectProperty == "Texture" then
-						value = string.sub(value, 13)
-					end
-
-					if value ~= nil then
-						Events.EffectObject:InvokeServer({
-							NewPart
-						}, effectType, effectProperty, value)
-					end
-				end
-			end
-		end
-	end)()
-
-	-- Encasing behaviors in coroutines
-	coroutine.wrap(function()
-		for _, behaviour in ipairs(part:GetChildren()) do
-			if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
-				Events.BehaviourObject:InvokeServer({
-					NewPart
-				}, behaviour.Name, behaviour.Value)
-			end
-		end
-	end)()
-
-	-- Add a delay only for PaintObject processing
-	task.wait()
-	task.wait()
-
-	NewPart.Parent = workspace.PartQueue
-	return tick() - startTime
-end
 
 
 local function getPlayerNames()
@@ -655,6 +545,105 @@ ButtonSave = Saver:CreateButton({
 		warn("Errors:",errors)
 	end,
 })
+
+function ClonePartPropertiesEfficient(part: BasePart)
+	local plr, obbyCFrame = GetSelectedObby()
+	local startTime = tick()
+
+	if plr == nil then
+		notification("Error:", "No obby is currently being edited.", 6.5, "shield-alert")
+		return
+	end
+
+	local Obby = workspace.Obbies:FindFirstChild(plr.Name)
+	if not Obby then return end
+
+	local Parts = Obby.Items:FindFirstChild(part.Parent.Name)
+	if not Parts then return end
+
+	local args = {
+		[1] = part.Name,
+		[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
+	}
+	Events.AddObject:InvokeServer(unpack(args))
+
+	local NewPart = Parts:GetChildren()[1]
+	if not NewPart then return end
+
+	task.wait()
+
+	local paintTask = coroutine.create(function()
+		for _, property in ipairs(PropertyTypes.PaintObject) do
+			if part.ClassName == "MeshPart" and property == "Shape" then continue end
+			local value = part[property]
+			if value ~= nil then
+				if typeof(value) == "EnumItem" then value = value.Name end
+				local args = { {NewPart}, property, value }
+				Events.PaintObject:InvokeServer(unpack(args))
+			end
+		end
+	end)
+
+	local effectTask = coroutine.create(function()
+		for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
+			local effectOrigin = part:FindFirstChild(effectIndex)
+			if effectOrigin then
+				if effectOrigin:FindFirstChild(effectIndex) then
+					effectOrigin = effectOrigin[effectIndex]
+				end
+
+				local args = { {NewPart}, effectType, "Default" }
+				Events.EffectObject:InvokeServer(unpack(args))
+
+				for _, effectProperty in ipairs(PropertyTypes.EffectProperties[effectType]) do
+					local propertyOrigin = effectOrigin
+					local parentProperties = { "SizingMode", "LightInfluence", "Brightness", "Face" }
+					local parentTypes = { "text", "image", "video" }
+
+					if table.find(parentProperties, effectProperty) and table.find(parentTypes, effectType) then
+						propertyOrigin = effectOrigin.Parent
+					end
+
+					local value = propertyOrigin[effectProperty]
+					if typeof(value) == "EnumItem" then value = value.Name end
+
+					if effectProperty == "Texture" and typeof(value) == "string" then
+						value = value:gsub("^rbxassetid://", "")
+					end
+
+					if value ~= nil then
+						local args = { {NewPart}, effectType, effectProperty, value }
+						Events.EffectObject:InvokeServer(unpack(args))
+					end
+				end
+			end
+		end
+	end)
+
+	local behaviorTask = coroutine.create(function()
+		for _, behaviour in ipairs(part:GetChildren()) do
+			if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
+				local args = { {NewPart}, behaviour.Name, behaviour.Value }
+				Events.BehaviourObject:InvokeServer(unpack(args))
+			end
+		end
+	end)
+
+	coroutine.resume(paintTask)
+	coroutine.resume(effectTask)
+	coroutine.resume(behaviorTask)
+
+	while coroutine.status(paintTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
+		task.wait()
+	end
+
+	if NewPart ~= nil and NewPart.Parent ~= nil then
+		NewPart.Parent = workspace.PartQueue
+	end
+
+	return tick() - startTime
+end
+
 
 local Cloner = Window:CreateTab("Cloner", "copy")
 
