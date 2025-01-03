@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 efficient 14"
+local ver = "1.02 efficient 15"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -463,46 +463,43 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		Events.MoveObject:InvokeServer(unpack(args))
 	end)()
 
-	local paintTask = coroutine.create(function()
-		for _, property in ipairs(PropertyTypes.PaintObject) do
-			if part.ClassName == "MeshPart" and property == "Shape" then continue end
+	for _, property in ipairs(PropertyTypes.PaintObject) do
+		if part.ClassName == "MeshPart" and property == "Shape" then continue end
 
-			local value = part[property]
+		local value = part[property]
 
-			if value ~= nil then
-				if typeof(value) == "EnumItem" then value = value.Name end
-				local args = { {NewPart}, property, value }
+		if value ~= nil then
+			if typeof(value) == "EnumItem" then value = value.Name end
+			local args = { {NewPart}, property, value }
 
-				Events.PaintObject:InvokeServer(unpack(args))
+			Events.PaintObject:InvokeServer(unpack(args))
 
-				task.wait(SpeedSlider.CurrentValue)
+			task.wait(SpeedSlider.CurrentValue)
+		end
+	end
+
+	for _, property in ipairs(PropertyTypes.SpecialPaintObject) do
+		local value
+
+		if property == "Water" then
+			if part:FindFirstChild("AttributeLinks") and part.AttributeLinks:FindFirstChild("Water") then
+				value = true
+			end
+		elseif property == "Surface" then
+			value = part.FrontSurface.Name
+		elseif property == "Slipperiness" then
+			if part.CustomPhysicalProperties then
+				value = part.CustomPhysicalProperties.FrictionWeight
 			end
 		end
-		
-		for _, property in ipairs(PropertyTypes.SpecialPaintObject) do
-			local value
 
-			if property == "Water" then
-				if part:FindFirstChild("AttributeLinks") and part.AttributeLinks:FindFirstChild("Water") then
-					value = true
-				end
-			elseif property == "Surface" then
-				value = part.FrontSurface.Name
-			elseif property == "Slipperiness" then
-				if part.CustomPhysicalProperties then
-					value = part.CustomPhysicalProperties.FrictionWeight
-				end
-			end
+		if value ~= nil then
+			local args = { {NewPart}, property, value }
+			Events.PaintObject:InvokeServer(unpack(args))
 
-			if value ~= nil then
-				local args = { {NewPart}, property, value }
-				Events.PaintObject:InvokeServer(unpack(args))
-
-				task.wait(SpeedSlider.CurrentValue)
-			end
+			task.wait(SpeedSlider.CurrentValue)
 		end
-	end)
-
+	end
 	local effectTask = coroutine.create(function()
 		for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
 			local effectOrigin = part:FindFirstChild(effectIndex)
@@ -548,11 +545,10 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		end
 	end)
 
-	coroutine.resume(paintTask)
 	coroutine.resume(effectTask)
 	coroutine.resume(behaviorTask)
 
-	while coroutine.status(paintTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
+	while coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
 		task.wait()
 	end
 
