@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 efficient 16"
+local ver = "1.02 efficient 18"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -462,7 +462,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 		Events.MoveObject:InvokeServer(unpack(args))
 	end)()
-	
+
 	local propertyTask = coroutine.create(function()
 		for _, property in ipairs(PropertyTypes.PaintObject) do
 			if part.ClassName == "MeshPart" and property == "Shape" then continue end
@@ -472,11 +472,9 @@ function ClonePartPropertiesEfficient(part: BasePart)
 			if value ~= nil then
 				if typeof(value) == "EnumItem" then value = value.Name end
 
-				while NewPart[property] ~= value or typeof(NewPart[property]) == "EnumItem" and NewPart[property].Name == value do
+				while not (NewPart[property] == value or (typeof(NewPart[property]) == "EnumItem" and NewPart[property].Name == value)) do
 					local args = { {NewPart}, property, value }
 					Events.PaintObject:InvokeServer(unpack(args))
-
-					task.wait()
 				end
 			end
 		end
@@ -497,30 +495,26 @@ function ClonePartPropertiesEfficient(part: BasePart)
 			end
 
 			if value ~= nil then
-				while property == "Water" and not NewPart:FindFirstChild("AttributeLinks") or not NewPart.AttributeLinks:FindFirstChild("Water") do
-					local args = { {NewPart}, property, value }
-					Events.PaintObject:InvokeServer(unpack(args))
-
-					task.wait()
-				end
-
-				while property == "Surface" and NewPart.FrontSurface ~= part.FrontSurface do
-					local args = { {NewPart}, property, value }
-					Events.PaintObject:InvokeServer(unpack(args))
-
-					task.wait()
-				end
-
-				while property == "Slipperiness" and NewPart.CustomPhysicalProperties.FrictionWeight ~= part.CustomPhysicalProperties.FrictionWeight do
-					local args = { {NewPart}, property, value }
-					Events.PaintObject:InvokeServer(unpack(args))
-
-					task.wait()
+				if property == "Water" then
+					while not (NewPart:FindFirstChild("AttributeLinks") and NewPart.AttributeLinks:FindFirstChild("Water")) do
+						local args = { {NewPart}, property, value }
+						Events.PaintObject:InvokeServer(unpack(args))
+					end
+				elseif property == "Surface" then
+					while NewPart.FrontSurface ~= part.FrontSurface do
+						local args = { {NewPart}, property, value }
+						Events.PaintObject:InvokeServer(unpack(args))
+					end
+				elseif property == "Slipperiness" then
+					while NewPart.CustomPhysicalProperties.FrictionWeight ~= part.CustomPhysicalProperties.FrictionWeight do
+						local args = { {NewPart}, property, value }
+						Events.PaintObject:InvokeServer(unpack(args))
+					end
 				end
 			end
 		end
 	end)
-	
+
 	local effectTask = coroutine.create(function()
 		for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
 			local effectOrigin = part:FindFirstChild(effectIndex)
@@ -545,7 +539,8 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					if typeof(value) == "EnumItem" then value = value.Name end
 
 					if effectProperty == "Texture" and typeof(value) == "string" then
-						value = value:gsub("^rbxassetid://", "")
+						value = value:gsub("^rbxassetid://", "") -- Remove leading instance of "rbxassetid://"
+						value = value:gsub("rbxassetid://", "") -- Remove any remaining instances within the string
 					end
 
 					if value ~= nil then
@@ -580,6 +575,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	return tick() - startTime
 end
+
 
 local function getPlayerNames()
 	local plrs = {}
@@ -717,19 +713,6 @@ ClonerInput = Cloner:CreateInput({
 			notification("Error:", "Obby currently selected cannot be found or doesn't exist. Please reselect a ObbyId.", 6.5, "shield-alert")
 			ClonerInput:Set("")
 		end
-	end,
-})
-
-SpeedSlider = Cloner:CreateSlider({
-	Name = "Delay per PaintObject property",
-	Range = {0, 0.1},
-	Increment = 0.01,
-	Suffix = "seconds",
-	CurrentValue = 0.06,
-	Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		-- The function that takes place when the slider changes
-		-- The variable (Value) is a number which correlates to the value the slider is currently at
 	end,
 })
 
