@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.12 test 1"
+local ver = "1.12 test 2"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -427,7 +427,6 @@ end
 function ClonePartPropertiesEfficient(part: BasePart)
 	local plr, obbyCFrame = GetSelectedObby()
 	local startTime = tick()
-	
 	local waitTime = 0.3
 
 	if plr == nil then
@@ -440,8 +439,8 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	local Parts = Obby.Items:FindFirstChild(part.Parent.Name)
 	if not Parts then return end
-	
-	if #Parts:GetChildren() == 0 and workspace.PartQueue:FindFirstChild(part.Name) ~= nil then
+
+	if #Parts:GetChildren() == 0 and workspace.PartQueue:FindFirstChild(part.Name) then
 		while #Parts:GetChildren() == 0 do
 			local args = {
 				[1] = {
@@ -452,7 +451,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					}
 				}
 			}
-
+			
 			game:GetService("ReplicatedStorage").Events.CloneObject:InvokeServer(unpack(args))
 		end
 	else
@@ -461,7 +460,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				[1] = part.Name,
 				[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
 			}
-
+			
 			Events.AddObject:InvokeServer(unpack(args))
 		end
 		
@@ -469,11 +468,14 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	end
 
 	local NewPart = Parts:GetChildren()[1]
-	if not NewPart then return 404 end
+	
+	if not NewPart or not NewPart:IsA("BasePart") or not NewPart.Parent then
+		return 404 -- Invalid part
+	end
 
 	coroutine.wrap(function()
 		local CurrentPart = NewPart
-		
+
 		if string.find(part.Name, "Spin") then
 			while CurrentPart:GetAttribute("OrigPosition") ~= part:GetAttribute("OrigPosition") do
 				local args = {
@@ -485,9 +487,8 @@ function ClonePartPropertiesEfficient(part: BasePart)
 						},
 					},
 				}
-
+				
 				Events.MoveObject:InvokeServer(unpack(args))
-
 				task.wait()
 			end
 		elseif string.find(part.Name, "Move") then
@@ -505,9 +506,8 @@ function ClonePartPropertiesEfficient(part: BasePart)
 						}
 					}
 				}
-
+				
 				game:GetService("ReplicatedStorage").Events.MoveObject:InvokeServer(unpack(args))
-
 				task.wait()
 			end
 		elseif string.find(part.Name, "Push") then
@@ -521,9 +521,8 @@ function ClonePartPropertiesEfficient(part: BasePart)
 						},
 					},
 				}
-
+				
 				Events.MoveObject:InvokeServer(unpack(args))
-
 				task.wait()
 			end
 		else
@@ -537,182 +536,21 @@ function ClonePartPropertiesEfficient(part: BasePart)
 						},
 					},
 				}
-
+				
 				Events.MoveObject:InvokeServer(unpack(args))
-
 				task.wait()
 			end
 		end
 	end)()
 
-	local propertyTask = coroutine.create(function()
-		for _, property in ipairs(PropertyTypes.PaintObject) do
-			if part.ClassName == "MeshPart" and property == "Shape" then continue end
-
-			local value = part[property]
-
-			if value ~= nil then
-				if typeof(value) == "EnumItem" then value = value.Name end
-
-				while not (NewPart[property] == value or (typeof(NewPart[property]) == "EnumItem" and NewPart[property].Name == value)) do
-					local args = { 
-						[1] = {NewPart}, 
-						[2] = property, 
-						[3] = value 
-					}
-					
-					Events.PaintObject:InvokeServer(unpack(args))
-				end
-			end
-		end
-
-		for _, property in ipairs(PropertyTypes.SpecialPaintObject) do
-			local value
-
-			if property == "Water" then
-				if part:FindFirstChild("AttributeLinks") and part.AttributeLinks:FindFirstChild("Water") then
-					value = true
-				end
-			elseif property == "Surface" then
-				value = part.FrontSurface.Name
-			elseif property == "Slipperiness" then
-				if part.CustomPhysicalProperties then
-					value = part.CustomPhysicalProperties.FrictionWeight
-				end
-			end
-
-			if value ~= nil then
-				if property == "Water" then
-					while not (NewPart:FindFirstChild("AttributeLinks") and NewPart.AttributeLinks:FindFirstChild("Water")) do
-						local args = { 
-							[1] = {NewPart}, 
-							[2] = property, 
-							[3] = value 
-						}
-						
-						Events.PaintObject:InvokeServer(unpack(args))
-					end
-				elseif property == "Surface" then
-					while NewPart.FrontSurface ~= part.FrontSurface do
-						local args = { 
-							[1] = {NewPart}, 
-							[2] = property, 
-							[3] = value 
-						}
-						
-						Events.PaintObject:InvokeServer(unpack(args))
-					end
-				elseif property == "Slipperiness" then
-					while NewPart.CustomPhysicalProperties ~= nil and NewPart.CustomPhysicalProperties.FrictionWeight ~= part.CustomPhysicalProperties.FrictionWeight do
-						local args = { 
-							[1] = {NewPart}, 
-							[2] = property, 
-							[3] = value 
-						}
-						
-						Events.PaintObject:InvokeServer(unpack(args))
-					end
-				end
-			end
-		end
-	end)
-
-	local effectTask = coroutine.create(function()
-		for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
-			local effectOrigin = part:FindFirstChild(effectIndex)
-			if effectOrigin then
-				if effectOrigin:FindFirstChild(effectIndex) then
-					effectOrigin = effectOrigin[effectIndex]
-				end
-
-				local args = { 
-					[1] = {NewPart}, 
-					[2] = effectType, 
-					[3] = "Default" 
-				}
-				
-				Events.EffectObject:InvokeServer(unpack(args))
-
-				for _, effectProperty in ipairs(PropertyTypes.EffectProperties[effectType]) do
-					local propertyOrigin = effectOrigin
-					local parentProperties = {"SizingMode", "LightInfluence", "Brightness", "Face"}
-					local parentTypes = {"text", "image", "video"}
-
-					if table.find(parentProperties, effectProperty) and table.find(parentTypes, effectType) then
-						propertyOrigin = effectOrigin.Parent
-					end
-
-					local value = propertyOrigin[effectProperty]
-					if typeof(value) == "EnumItem" then value = value.Name end
-
-					if (effectProperty == "Texture" or "Video" or "Image") and typeof(value) == "string" then
-						value = value:gsub("^rbxassetid://", "") -- Remove leading instance of "rbxassetid://"
-						value = value:gsub("rbxassetid://", "") -- Remove any remaining instances within the string
-					end
-
-					if value ~= nil then
-						local args = { 
-							[1] = {NewPart}, 
-							[2] = effectType, 
-							[3] = effectProperty, 
-							[4] = value 
-						}
-						
-						Events.EffectObject:InvokeServer(unpack(args))
-					end
-				end
-			end
-		end
-	end)
-
-	local behaviorTask = coroutine.create(function()
-		for _, behaviour in ipairs(part:GetChildren()) do
-			if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
-				local args = { 
-					[1] = {NewPart}, 
-					[2] = behaviour.Name, 
-					[3] = behaviour.Value 
-				}
-				
-				Events.BehaviourObject:InvokeServer(unpack(args))
-			elseif behaviour:IsA("Folder") and behaviour.Name == "Activateds" then
-				local function getLinkedButtonParts()
-					local behaviourLinks = {}
-					
-					for i, objectValue: ObjectValue in pairs(behaviour:GetChildren()) do
-						table.insert(behaviourLinks, objectValue.Value)
-					end
-					
-					return behaviourLinks
-				end
-				
-				local args = {
-					[1] = NewPart,
-					[2] = getLinkedButtonParts()
-				}
-
-				game:GetService("ReplicatedStorage").Events.UpdateButton:FireServer(unpack(args))
-			end
-		end
-	end)
-
-	coroutine.resume(effectTask)
-	coroutine.resume(behaviorTask)
-	coroutine.resume(propertyTask)
-
-	while coroutine.status(propertyTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
-		task.wait()
-	end
-
-	if NewPart ~= nil and NewPart.Parent ~= nil then
+	if NewPart and NewPart.Parent then
 		NewPart.Parent = workspace.PartQueue
 	end
-	
-	repeat task.wait() until (tick() - startTime) >= waitTime -- precaution for parts faster then required waitTime.
+
+	repeat task.wait() until (tick() - startTime) >= waitTime
 
 	return tick() - startTime
 end
-
 
 local function getPlayerNames()
 	local plrs = {}
