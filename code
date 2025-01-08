@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.12 test 4"
+local ver = "1.12 test 5"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -291,26 +291,12 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		local CurrentPart = NewPart
 
 		if string.find(part.Name, "Spin") then
-			local args = {
-				[1] = {
-					[1] = {
-						[1] = CurrentPart,
-						[2] = obbyCFrame + (obbyCFrame.LookVector * 100) + Vector3.new(0, 100, 0),
-						[3] = Vector3.new(0.001, 0.001, 0.001)
-					},
-				},
-			}
-
-			Events.MoveObject:InvokeServer(unpack(args))
-			
-			task.wait()
-			
 			while CurrentPart:GetAttribute("OrigPosition") ~= part:GetAttribute("OrigPosition") do
 				local args = {
 					[1] = {
 						[1] = {
 							[1] = CurrentPart,
-							[2] = CFrame.new(part:GetAttribute("OrigPosition")) * CFrame.Angles(math.rad(part.OrigRotation.Value.Rotation.X), math.rad(part.OrigRotation.Value.Rotation.Y), math.rad(part.OrigRotation.Value.Rotation.Z)),
+							[2] = CFrame.new(part:GetAttribute("OrigPosition") + Vector3.new(0, 0.001, 0)) * CFrame.Angles(math.rad(part.OrigRotation.Value.Rotation.X), math.rad(part.OrigRotation.Value.Rotation.Y), math.rad(part.OrigRotation.Value.Rotation.Z)),
 							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
 						},
 					},
@@ -325,10 +311,10 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					[1] = {
 						[1] = {
 							[1] = CurrentPart,
-							[2] = part:FindFirstChild("m1").Value * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
+							[2] = part:FindFirstChild("m1").Value * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)) + Vector3.new(0, 0.001, 0),
 							[3] = Vector3.new(5, 1, 5),
 							[4] = {
-								[1] = part:FindFirstChild("m1").Value,
+								[1] = part:FindFirstChild("m1").Value + Vector3.new(0, 0.001, 0),
 								[2] = part:FindFirstChild("m2").Value
 							}
 						}
@@ -344,7 +330,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					[1] = {
 						[1] = {
 							[1] = CurrentPart,
-							[2] = part.OrigCFrame.Value,
+							[2] = part.OrigCFrame.Value + Vector3.new(0, 0.001, 0),
 							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
 						},
 					},
@@ -359,7 +345,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					[1] = {
 						[1] = {
 							[1] = CurrentPart,
-							[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
+							[2] = CFrame.new(part.Position + Vector3.new(0, 0.001, 0)) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
 							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
 						},
 					},
