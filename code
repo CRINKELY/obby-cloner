@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.02 efficient 18"
+local ver = "1.1"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -438,29 +438,85 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	local Parts = Obby.Items:FindFirstChild(part.Parent.Name)
 	if not Parts then return end
+	
+	if #Parts:GetChildren() == 0 and workspace.PartQueue:FindFirstChild(part.Name) ~= nil then
+		local args = {
+			[1] = {
+				[1] = {
+					[1] = workspace.PartQueue:FindFirstChild(part.Name),
+					[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
+					[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+				}
+			}
+		}
 
-	local args = {
-		[1] = part.Name,
-		[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
-	}
+		game:GetService("ReplicatedStorage").Events.CloneObject:InvokeServer(unpack(args))
+	else
+		local args = {
+			[1] = part.Name,
+			[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
+		}
 
-	Events.AddObject:InvokeServer(unpack(args))
+		Events.AddObject:InvokeServer(unpack(args))
+	end
 
 	local NewPart = Parts:GetChildren()[1]
 	if not NewPart then return end
 
 	coroutine.wrap(function()
-		local args = {
-			[1] = {
+		if string.find(part.Name, "Spin") then
+			local args = {
 				[1] = {
-					[1] = NewPart,
-					[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
-					[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+					[1] = {
+						[1] = NewPart,
+						[2] = CFrame.new(part:GetAttribute("OrigPosition")) * CFrame.Angles(math.rad(part.OrigRotation.Value.Rotation.X), math.rad(part.OrigRotation.Value.Rotation.Y), math.rad(part.OrigRotation.Value.Rotation.Z)),
+						[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+					},
 				},
-			},
-		}
+			}
 
-		Events.MoveObject:InvokeServer(unpack(args))
+			Events.MoveObject:InvokeServer(unpack(args))
+		elseif string.find(part.Name, "Move") then
+			local args = {
+				[1] = {
+					[1] = {
+						[1] = NewPart,
+						[2] = part:FindFirstChild("m1").Value * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
+						[3] = Vector3.new(5, 1, 5),
+						[4] = {
+							[1] = part:FindFirstChild("m1").Value,
+							[2] = part:FindFirstChild("m2").Value
+						}
+					}
+				}
+			}
+
+			game:GetService("ReplicatedStorage").Events.MoveObject:InvokeServer(unpack(args))
+		elseif string.find(part.Name, "Push") then
+			local args = {
+				[1] = {
+					[1] = {
+						[1] = NewPart,
+						[2] = part.OrigCFrame.Value,
+						[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+					},
+				},
+			}
+
+			Events.MoveObject:InvokeServer(unpack(args))
+		else
+			local args = {
+				[1] = {
+					[1] = {
+						[1] = NewPart,
+						[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
+						[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+					},
+				},
+			}
+
+			Events.MoveObject:InvokeServer(unpack(args))
+		end
 	end)()
 
 	local propertyTask = coroutine.create(function()
@@ -473,7 +529,12 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				if typeof(value) == "EnumItem" then value = value.Name end
 
 				while not (NewPart[property] == value or (typeof(NewPart[property]) == "EnumItem" and NewPart[property].Name == value)) do
-					local args = { {NewPart}, property, value }
+					local args = { 
+						[1] = {NewPart}, 
+						[2] = property, 
+						[3] = value 
+					}
+					
 					Events.PaintObject:InvokeServer(unpack(args))
 				end
 			end
@@ -497,17 +558,32 @@ function ClonePartPropertiesEfficient(part: BasePart)
 			if value ~= nil then
 				if property == "Water" then
 					while not (NewPart:FindFirstChild("AttributeLinks") and NewPart.AttributeLinks:FindFirstChild("Water")) do
-						local args = { {NewPart}, property, value }
+						local args = { 
+							[1] = {NewPart}, 
+							[2] = property, 
+							[3] = value 
+						}
+						
 						Events.PaintObject:InvokeServer(unpack(args))
 					end
 				elseif property == "Surface" then
 					while NewPart.FrontSurface ~= part.FrontSurface do
-						local args = { {NewPart}, property, value }
+						local args = { 
+							[1] = {NewPart}, 
+							[2] = property, 
+							[3] = value 
+						}
+						
 						Events.PaintObject:InvokeServer(unpack(args))
 					end
 				elseif property == "Slipperiness" then
 					while NewPart.CustomPhysicalProperties.FrictionWeight ~= part.CustomPhysicalProperties.FrictionWeight do
-						local args = { {NewPart}, property, value }
+						local args = { 
+							[1] = {NewPart}, 
+							[2] = property, 
+							[3] = value 
+						}
+						
 						Events.PaintObject:InvokeServer(unpack(args))
 					end
 				end
@@ -523,7 +599,12 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					effectOrigin = effectOrigin[effectIndex]
 				end
 
-				local args = { {NewPart}, effectType, "Default" }
+				local args = { 
+					[1] = {NewPart}, 
+					[2] = effectType, 
+					[3] = "Default" 
+				}
+				
 				Events.EffectObject:InvokeServer(unpack(args))
 
 				for _, effectProperty in ipairs(PropertyTypes.EffectProperties[effectType]) do
@@ -538,13 +619,19 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					local value = propertyOrigin[effectProperty]
 					if typeof(value) == "EnumItem" then value = value.Name end
 
-					if effectProperty == "Texture" and typeof(value) == "string" then
+					if (effectProperty == "Texture" or "Video" or "Image") and typeof(value) == "string" then
 						value = value:gsub("^rbxassetid://", "") -- Remove leading instance of "rbxassetid://"
 						value = value:gsub("rbxassetid://", "") -- Remove any remaining instances within the string
 					end
 
 					if value ~= nil then
-						local args = { {NewPart}, effectType, effectProperty, value }
+						local args = { 
+							[1] = {NewPart}, 
+							[2] = effectType, 
+							[3] = effectProperty, 
+							[4] = value 
+						}
+						
 						Events.EffectObject:InvokeServer(unpack(args))
 					end
 				end
@@ -555,8 +642,30 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	local behaviorTask = coroutine.create(function()
 		for _, behaviour in ipairs(part:GetChildren()) do
 			if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
-				local args = { {NewPart}, behaviour.Name, behaviour.Value }
+				local args = { 
+					[1] = {NewPart}, 
+					[2] = behaviour.Name, 
+					[3] = behaviour.Value 
+				}
+				
 				Events.BehaviourObject:InvokeServer(unpack(args))
+			elseif behaviour:IsA("Folder") and behaviour.Name == "Activateds" then
+				local function getLinkedButtonParts()
+					local behaviourLinks = {}
+					
+					for i, objectValue: ObjectValue in pairs(behaviour:GetChildren()) do
+						table.insert(behaviourLinks, objectValue.Value)
+					end
+					
+					return behaviourLinks
+				end
+				
+				local args = {
+					[1] = NewPart,
+					[2] = getLinkedButtonParts()
+				}
+
+				game:GetService("ReplicatedStorage").Events.UpdateButton:FireServer(unpack(args))
 			end
 		end
 	end)
@@ -572,6 +681,8 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	if NewPart ~= nil and NewPart.Parent ~= nil then
 		NewPart.Parent = workspace.PartQueue
 	end
+	
+	repeat task.wait() until (tick() - startTime) >= 0.3 -- precaution for parts faster then 0.3s.
 
 	return tick() - startTime
 end
@@ -734,14 +845,12 @@ ButtonClone = Cloner:CreateButton({
 			end
 
 			CloneCooldown = true
-			notification("Obby Cloner", "Cloning...", 4, "bell")
+			
+			notification("Obby Cloner", `Cloning {ClonerInput.CurrentValue}...`, 4, "bell")
 
 			local Obby = game.ReplicatedStorage.SavedObbies[player.Name]:FindFirstChild(ClonerInput.CurrentValue)
 
-			local BlacklistedFolders = { -- unsupported parts, will be changed later
-				"Spin Parts",
-				"Moving Parts"
-			}
+			local BlacklistedFolders = {}
 
 			local CalculatedPartsSize = 0
 			local PartsCloned = 0
