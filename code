@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.12 test 2"
+local ver = "1.12 test 3"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -458,7 +458,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		while #Parts:GetChildren() == 0 do
 			local args = {
 				[1] = part.Name,
-				[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
+				[2] = obbyCFrame + (obbyCFrame.LookVector * 100) + Vector3.new(0, 100, 0)
 			}
 			
 			Events.AddObject:InvokeServer(unpack(args))
@@ -477,6 +477,20 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		local CurrentPart = NewPart
 
 		if string.find(part.Name, "Spin") then
+			local args = {
+				[1] = {
+					[1] = {
+						[1] = CurrentPart,
+						[2] = obbyCFrame + (obbyCFrame.LookVector * 100) + Vector3.new(0, 100, 0),
+						[3] = Vector3.new(0.001, 0.001, 0.001)
+					},
+				},
+			}
+
+			Events.MoveObject:InvokeServer(unpack(args))
+			
+			task.wait()
+			
 			while CurrentPart:GetAttribute("OrigPosition") ~= part:GetAttribute("OrigPosition") do
 				local args = {
 					[1] = {
