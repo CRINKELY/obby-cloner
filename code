@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.2"
+local ver = "1.21"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -470,8 +470,8 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	local NewPart = Parts:GetChildren()[1]
 	if not NewPart then return 404 end
-
-	coroutine.wrap(function()
+	
+	local moveTask = coroutine.create(function()
 		if string.find(part.Name, "Spin") then
 			while NewPart:GetAttribute("OrigPosition") ~= part:GetAttribute("OrigPosition") do
 				local args = {
@@ -485,7 +485,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				}
 
 				Events.MoveObject:InvokeServer(unpack(args))
-				
+
 				task.wait()
 			end
 		elseif string.find(part.Name, "Move") then
@@ -505,7 +505,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				}
 
 				game:GetService("ReplicatedStorage").Events.MoveObject:InvokeServer(unpack(args))
-				
+
 				task.wait()
 			end
 		elseif string.find(part.Name, "Push") then
@@ -521,7 +521,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				}
 
 				Events.MoveObject:InvokeServer(unpack(args))
-				
+
 				task.wait()
 			end
 		else
@@ -537,11 +537,11 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				}
 
 				Events.MoveObject:InvokeServer(unpack(args))
-				
+
 				task.wait()
 			end
 		end
-	end)()
+	end)
 
 	local propertyTask = coroutine.create(function()
 		for _, property in ipairs(PropertyTypes.PaintObject) do
@@ -694,11 +694,12 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		end
 	end)
 
+	coroutine.resume(moveTask)
 	coroutine.resume(effectTask)
 	coroutine.resume(behaviorTask)
 	coroutine.resume(propertyTask)
 
-	while coroutine.status(propertyTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
+	while coroutine.status(moveTask) ~= "dead" or coroutine.status(propertyTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
 		task.wait()
 	end
 
@@ -710,7 +711,6 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	return tick() - startTime
 end
-
 
 local function getPlayerNames()
 	local plrs = {}
