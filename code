@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.1"
+local ver = "1.11"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -465,57 +465,73 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	coroutine.wrap(function()
 		if string.find(part.Name, "Spin") then
-			local args = {
-				[1] = {
+			while NewPart:GetAttribute("OrigPosition") ~= part:GetAttribute("OrigPosition") do
+				local args = {
 					[1] = {
-						[1] = NewPart,
-						[2] = CFrame.new(part:GetAttribute("OrigPosition")) * CFrame.Angles(math.rad(part.OrigRotation.Value.Rotation.X), math.rad(part.OrigRotation.Value.Rotation.Y), math.rad(part.OrigRotation.Value.Rotation.Z)),
-						[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+						[1] = {
+							[1] = NewPart,
+							[2] = CFrame.new(part:GetAttribute("OrigPosition")) * CFrame.Angles(math.rad(part.OrigRotation.Value.Rotation.X), math.rad(part.OrigRotation.Value.Rotation.Y), math.rad(part.OrigRotation.Value.Rotation.Z)),
+							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+						},
 					},
-				},
-			}
+				}
 
-			Events.MoveObject:InvokeServer(unpack(args))
+				Events.MoveObject:InvokeServer(unpack(args))
+				
+				task.wait()
+			end
 		elseif string.find(part.Name, "Move") then
-			local args = {
-				[1] = {
+			while NewPart:FindFirstChild("m1").Value ~= part:FindFirstChild("m1").Value and NewPart:FindFirstChild("m2").Value ~= part:FindFirstChild("m2").Value do
+				local args = {
 					[1] = {
-						[1] = NewPart,
-						[2] = part:FindFirstChild("m1").Value * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
-						[3] = Vector3.new(5, 1, 5),
-						[4] = {
-							[1] = part:FindFirstChild("m1").Value,
-							[2] = part:FindFirstChild("m2").Value
+						[1] = {
+							[1] = NewPart,
+							[2] = part:FindFirstChild("m1").Value * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
+							[3] = Vector3.new(5, 1, 5),
+							[4] = {
+								[1] = part:FindFirstChild("m1").Value,
+								[2] = part:FindFirstChild("m2").Value
+							}
 						}
 					}
 				}
-			}
 
-			game:GetService("ReplicatedStorage").Events.MoveObject:InvokeServer(unpack(args))
+				game:GetService("ReplicatedStorage").Events.MoveObject:InvokeServer(unpack(args))
+				
+				task.wait()
+			end
 		elseif string.find(part.Name, "Push") then
-			local args = {
-				[1] = {
+			while NewPart.OrigCFrame.Value ~= part.OrigCFrame.Value do
+				local args = {
 					[1] = {
-						[1] = NewPart,
-						[2] = part.OrigCFrame.Value,
-						[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+						[1] = {
+							[1] = NewPart,
+							[2] = part.OrigCFrame.Value,
+							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+						},
 					},
-				},
-			}
+				}
 
-			Events.MoveObject:InvokeServer(unpack(args))
+				Events.MoveObject:InvokeServer(unpack(args))
+				
+				task.wait()
+			end
 		else
-			local args = {
-				[1] = {
+			while NewPart.CFrame ~= part.CFrame do
+				local args = {
 					[1] = {
-						[1] = NewPart,
-						[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
-						[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+						[1] = {
+							[1] = NewPart,
+							[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
+							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+						},
 					},
-				},
-			}
+				}
 
-			Events.MoveObject:InvokeServer(unpack(args))
+				Events.MoveObject:InvokeServer(unpack(args))
+				
+				task.wait()
+			end
 		end
 	end)()
 
@@ -577,7 +593,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 						Events.PaintObject:InvokeServer(unpack(args))
 					end
 				elseif property == "Slipperiness" then
-					while NewPart.CustomPhysicalProperties.FrictionWeight ~= part.CustomPhysicalProperties.FrictionWeight do
+					while NewPart.CustomPhysicalProperties ~= nil and NewPart.CustomPhysicalProperties.FrictionWeight ~= part.CustomPhysicalProperties.FrictionWeight do
 						local args = { 
 							[1] = {NewPart}, 
 							[2] = property, 
@@ -609,8 +625,8 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 				for _, effectProperty in ipairs(PropertyTypes.EffectProperties[effectType]) do
 					local propertyOrigin = effectOrigin
-					local parentProperties = { "SizingMode", "LightInfluence", "Brightness", "Face" }
-					local parentTypes = { "text", "image", "video" }
+					local parentProperties = {"SizingMode", "LightInfluence", "Brightness", "Face"}
+					local parentTypes = {"text", "image", "video"}
 
 					if table.find(parentProperties, effectProperty) and table.find(parentTypes, effectType) then
 						propertyOrigin = effectOrigin.Parent
@@ -876,17 +892,19 @@ ButtonClone = Cloner:CreateButton({
 					CalculatedPartsSize += 1
 				end
 			end
+			
+			ButtonClone:Set(`Cloning... (0%)`)
 
 			for i, partsFolder in pairs(Obby.Items:GetChildren()) do
 				if table.find(BlacklistedFolders, partsFolder.Name) then continue end
 
 				for i, part in pairs(partsFolder:GetChildren()) do
-					table.insert(seconds, ClonePartPropertiesEfficient(part))
+					local secs = ClonePartPropertiesEfficient(part)
+					
+					table.insert(seconds, secs)
 					PartsCloned += 1
 					
-					task.wait(1)
-					
-					notification("Obby Cloner", `Average seconds per part: {math.floor(getAverage(seconds) * 1000) / 1000}`, 1, "bell")
+					notification("Obby Cloner", `Seconds taken for part: {math.floor(secs * 1000) / 1000}`, 1, "bell")
 					ButtonClone:Set(`Cloning... ({math.round(PartsCloned/CalculatedPartsSize * 100) / 100}%)`)
 				end
 			end
