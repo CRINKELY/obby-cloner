@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.11 testing 1"
+local ver = "1.2"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -427,6 +427,8 @@ end
 function ClonePartPropertiesEfficient(part: BasePart)
 	local plr, obbyCFrame = GetSelectedObby()
 	local startTime = tick()
+	
+	local waitTime = 0.3
 
 	if plr == nil then
 		notification("Error:", "No obby is currently being edited.", 6.5, "shield-alert")
@@ -440,24 +442,30 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	if not Parts then return end
 	
 	if #Parts:GetChildren() == 0 and workspace.PartQueue:FindFirstChild(part.Name) ~= nil then
-		local args = {
-			[1] = {
+		while #Parts:GetChildren() == 0 do
+			local args = {
 				[1] = {
-					[1] = workspace.PartQueue:FindFirstChild(part.Name),
-					[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
-					[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+					[1] = {
+						[1] = workspace.PartQueue:FindFirstChild(part.Name),
+						[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
+						[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+					}
 				}
 			}
-		}
 
-		game:GetService("ReplicatedStorage").Events.CloneObject:InvokeServer(unpack(args))
+			game:GetService("ReplicatedStorage").Events.CloneObject:InvokeServer(unpack(args))
+		end
 	else
-		local args = {
-			[1] = part.Name,
-			[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
-		}
+		while #Parts:GetChildren() == 0 do
+			local args = {
+				[1] = part.Name,
+				[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
+			}
 
-		Events.AddObject:InvokeServer(unpack(args))
+			Events.AddObject:InvokeServer(unpack(args))
+		end
+		
+		waitTime = 1
 	end
 
 	local NewPart = Parts:GetChildren()[1]
@@ -698,7 +706,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		NewPart.Parent = workspace.PartQueue
 	end
 	
-	repeat task.wait() until (tick() - startTime) >= 0.3 -- precaution for parts faster then 0.3s.
+	repeat task.wait() until (tick() - startTime) >= waitTime -- precaution for parts faster then required waitTime.
 
 	return tick() - startTime
 end
