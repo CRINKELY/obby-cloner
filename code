@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.11"
+local ver = "1.11 testing 1"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -461,7 +461,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	end
 
 	local NewPart = Parts:GetChildren()[1]
-	if not NewPart then return end
+	if not NewPart then return 404 end
 
 	coroutine.wrap(function()
 		if string.find(part.Name, "Spin") then
