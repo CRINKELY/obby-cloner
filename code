@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.21"
+local ver = "1.12 test 1"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -470,14 +470,16 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	local NewPart = Parts:GetChildren()[1]
 	if not NewPart then return 404 end
-	
-	local moveTask = coroutine.create(function()
+
+	coroutine.wrap(function()
+		local CurrentPart = NewPart
+		
 		if string.find(part.Name, "Spin") then
-			while NewPart:GetAttribute("OrigPosition") ~= part:GetAttribute("OrigPosition") do
+			while CurrentPart:GetAttribute("OrigPosition") ~= part:GetAttribute("OrigPosition") do
 				local args = {
 					[1] = {
 						[1] = {
-							[1] = NewPart,
+							[1] = CurrentPart,
 							[2] = CFrame.new(part:GetAttribute("OrigPosition")) * CFrame.Angles(math.rad(part.OrigRotation.Value.Rotation.X), math.rad(part.OrigRotation.Value.Rotation.Y), math.rad(part.OrigRotation.Value.Rotation.Z)),
 							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
 						},
@@ -489,11 +491,11 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				task.wait()
 			end
 		elseif string.find(part.Name, "Move") then
-			while NewPart:FindFirstChild("m1").Value ~= part:FindFirstChild("m1").Value and NewPart:FindFirstChild("m2").Value ~= part:FindFirstChild("m2").Value do
+			while CurrentPart:FindFirstChild("m1").Value ~= part:FindFirstChild("m1").Value and CurrentPart:FindFirstChild("m2").Value ~= part:FindFirstChild("m2").Value do
 				local args = {
 					[1] = {
 						[1] = {
-							[1] = NewPart,
+							[1] = CurrentPart,
 							[2] = part:FindFirstChild("m1").Value * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
 							[3] = Vector3.new(5, 1, 5),
 							[4] = {
@@ -509,11 +511,11 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				task.wait()
 			end
 		elseif string.find(part.Name, "Push") then
-			while NewPart.OrigCFrame.Value ~= part.OrigCFrame.Value do
+			while CurrentPart.OrigCFrame.Value ~= part.OrigCFrame.Value do
 				local args = {
 					[1] = {
 						[1] = {
-							[1] = NewPart,
+							[1] = CurrentPart,
 							[2] = part.OrigCFrame.Value,
 							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
 						},
@@ -525,11 +527,11 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				task.wait()
 			end
 		else
-			while NewPart.CFrame ~= part.CFrame do
+			while CurrentPart.CFrame ~= part.CFrame do
 				local args = {
 					[1] = {
 						[1] = {
-							[1] = NewPart,
+							[1] = CurrentPart,
 							[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
 							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
 						},
@@ -541,7 +543,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 				task.wait()
 			end
 		end
-	end)
+	end)()
 
 	local propertyTask = coroutine.create(function()
 		for _, property in ipairs(PropertyTypes.PaintObject) do
@@ -694,12 +696,11 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		end
 	end)
 
-	coroutine.resume(moveTask)
 	coroutine.resume(effectTask)
 	coroutine.resume(behaviorTask)
 	coroutine.resume(propertyTask)
 
-	while coroutine.status(moveTask) ~= "dead" or coroutine.status(propertyTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
+	while coroutine.status(propertyTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
 		task.wait()
 	end
 
@@ -711,6 +712,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	return tick() - startTime
 end
+
 
 local function getPlayerNames()
 	local plrs = {}
