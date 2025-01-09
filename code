@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.12 test 5"
+local ver = "1.12 test rounding 1"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -236,9 +236,198 @@ function GenerateTag(part: Instance)
 	return Tag
 end
 
+function ClonePartProperties(part: BasePart)
+	local plr, obbyCFrame = GetSelectedObby()
+	local startTime = tick()
+
+	if plr == nil then
+		notification("Error:", "No obby is currently being edited.", 6.5, "shield-alert")
+		if true then return end
+	end
+
+	local Obby = workspace.Obbies:FindFirstChild(plr.Name)
+	local Parts = Obby.Items:FindFirstChild(part.Parent.Name)
+
+	local args = {
+		[1] = part.Name,
+		[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
+	}
+
+	Events.AddObject:InvokeServer(unpack(args))
+	
+	local NewPart = Parts:GetChildren()[1]
+	
+	task.wait()
+	
+	coroutine.wrap(function()
+		local args = {
+			[1] = { -- parts
+				[1] = { -- part
+					[1] = NewPart,
+					[2] = CFrame.new(part.Position) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)), -- pos, rot
+					[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z) -- size
+				},
+			},
+		}
+		
+		Events.MoveObject:InvokeServer(unpack(args))
+	end)()
+
+	for i, property in pairs(PropertyTypes.PaintObject) do
+		if part.ClassName == "MeshPart" and property == "Shape" then continue end
+		
+		local value = part[property]
+		
+		if value == nil then
+			continue
+		end
+		
+		print(property, typeof(value))
+		
+		if typeof(value) == "Enums" or typeof(value) == "Enum" or typeof(value) == "EnumItem" then
+			value = value.Name
+		end
+
+		local args = {
+			[1] = { -- parts
+				[1] = NewPart
+			},
+			[2] = property,
+			[3] = value
+		}
+
+		Events.PaintObject:InvokeServer(unpack(args))
+		
+		for frames = 1, 2 do
+			task.wait()
+		end
+	end
+	
+	for i, property in pairs(PropertyTypes.SpecialPaintObject) do
+		local value = nil
+		
+		if property == "Water" then
+			if part:FindFirstChild("AttributeLinks") ~= nil and part.AttributeLinks:FindFirstChild("Water") ~= nil then
+				value = true
+			end
+		elseif property == "Surface" then
+			value = part.FrontSurface.Name
+		elseif property == "Slipperiness" then
+			if part.CustomPhysicalProperties ~= nil then
+				value = part.CustomPhysicalProperties.FrictionWeight
+			end
+		end
+		
+		print(property, typeof(value))
+
+		local args = {
+			[1] = { -- parts
+				NewPart
+			},
+			[2] = property,
+			[3] = value
+		}
+
+		Events.PaintObject:InvokeServer(unpack(args))
+		
+		for frames = 1, 2 do
+			task.wait()
+		end
+	end
+	
+	for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
+		print(effectType, effectIndex)
+		
+		if part:FindFirstChild(effectIndex) ~= nil then
+			local effectOrigin = part:FindFirstChild(effectIndex)
+			
+			if part[effectIndex]:FindFirstChild(effectIndex) ~= nil then
+				effectOrigin = part[effectIndex][effectIndex]
+			end
+			
+			local args = {
+				[1] = { -- parts
+					NewPart
+				},
+				[2] = effectType,
+				[3] = "Default",
+			}
+
+			Events.EffectObject:InvokeServer(unpack(args))
+			
+			for i, effectProperty in pairs(PropertyTypes.EffectProperties[effectType]) do
+				local propertyOrigin = effectOrigin
+				
+				local parentOriginProperties = {
+					"SizingMode",
+					"LightInfluence",
+					"Brightness",
+					"Face"
+				}
+				
+				local parentOriginTypes = {
+					"text",
+					"image",
+					"video"
+				}
+				
+				if table.find(parentOriginProperties, effectProperty) and table.find(parentOriginTypes, effectType) then
+					propertyOrigin = effectOrigin.Parent
+				end
+				
+				local value = propertyOrigin[effectProperty]
+				
+				if typeof(propertyOrigin[effectProperty]) == "Enums" or typeof(value) == "Enum" or typeof(value) == "EnumItem" then
+					value = propertyOrigin[effectProperty].Name
+				end
+				
+				if effectProperty == "Texture" then
+					value = string.sub(propertyOrigin[effectProperty], 13, 9999999)
+				end
+				
+				coroutine.wrap(function()
+					local args = {
+						[1] = { -- parts
+							NewPart
+						},
+						[2] = effectType,
+						[3] = effectProperty,
+						[4] = value
+					}
+					
+					Events.EffectObject:InvokeServer(unpack(args))
+				end)()
+			end
+		end
+	end
+	
+	for i, behaviour: ValueBase in pairs(part:GetChildren()) do
+		if behaviour:IsA("ValueBase") and not part[behaviour.Name]:IsA("Folder") and not string.find(behaviour.Name, "Link") then
+			coroutine.wrap(function()
+				local args = {
+					[1] = { -- parts
+						NewPart
+					},
+					[2] = behaviour.Name, -- found inside of the part as objectvalues
+					[3] = part[behaviour.Name].Value,
+				}
+				
+				Events.BehaviourObject:InvokeServer(unpack(args))
+			end)()
+		end
+	end
+	
+	if NewPart ~= nil and NewPart.Parent ~= nil then
+		NewPart.Parent = workspace.PartQueue
+	end
+	
+	return tick() - startTime
+end
+
 function ClonePartPropertiesEfficient(part: BasePart)
 	local plr, obbyCFrame = GetSelectedObby()
 	local startTime = tick()
+	
 	local waitTime = 0.3
 
 	if plr == nil then
@@ -251,8 +440,12 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	local Parts = Obby.Items:FindFirstChild(part.Parent.Name)
 	if not Parts then return end
-
-	if #Parts:GetChildren() == 0 and workspace.PartQueue:FindFirstChild(part.Name) then
+	
+	local function roundVectorUp(Vec3: Vector3)
+		return Vector3.new(math.ceil(Vec3.X * 1000) / 1000, math.ceil(Vec3.Y * 1000) / 1000, math.ceil(Vec3.Z * 1000) / 1000)
+	end
+	
+	if #Parts:GetChildren() == 0 and workspace.PartQueue:FindFirstChild(part.Name) ~= nil then
 		while #Parts:GetChildren() == 0 do
 			local args = {
 				[1] = {
@@ -263,16 +456,16 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					}
 				}
 			}
-			
+
 			game:GetService("ReplicatedStorage").Events.CloneObject:InvokeServer(unpack(args))
 		end
 	else
 		while #Parts:GetChildren() == 0 do
 			local args = {
 				[1] = part.Name,
-				[2] = obbyCFrame + (obbyCFrame.LookVector * 100) + Vector3.new(0, 100, 0)
+				[2] = obbyCFrame + (obbyCFrame.LookVector * 10) + Vector3.new(0, 2, 0)
 			}
-			
+
 			Events.AddObject:InvokeServer(unpack(args))
 		end
 		
@@ -280,48 +473,45 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	end
 
 	local NewPart = Parts:GetChildren()[1]
-	
-	if not NewPart or not NewPart:IsA("BasePart") or not NewPart.Parent then
-		return 404 -- Invalid part
-	end
-	
-	task.wait()
+	if not NewPart then return 404 end
 
 	coroutine.wrap(function()
 		local CurrentPart = NewPart
-
+		
 		if string.find(part.Name, "Spin") then
-			while CurrentPart:GetAttribute("OrigPosition") ~= part:GetAttribute("OrigPosition") do
+			while roundVectorUp(CurrentPart:GetAttribute("OrigPosition")) ~= roundVectorUp(part:GetAttribute("OrigPosition")) do
 				local args = {
 					[1] = {
 						[1] = {
 							[1] = CurrentPart,
-							[2] = CFrame.new(part:GetAttribute("OrigPosition") + Vector3.new(0, 0.001, 0)) * CFrame.Angles(math.rad(part.OrigRotation.Value.Rotation.X), math.rad(part.OrigRotation.Value.Rotation.Y), math.rad(part.OrigRotation.Value.Rotation.Z)),
-							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
+							[2] = CFrame.new(part:GetAttribute("OrigPosition")) * CFrame.Angles(math.rad(part.OrigRotation.Value.Rotation.X), math.rad(part.OrigRotation.Value.Rotation.Y), math.rad(part.OrigRotation.Value.Rotation.Z)),
+							[3] = roundVectorUp(Vector3.new(part.Size.X, part.Size.Y, part.Size.Z))
 						},
 					},
 				}
-				
+
 				Events.MoveObject:InvokeServer(unpack(args))
+
 				task.wait()
 			end
 		elseif string.find(part.Name, "Move") then
-			while CurrentPart:FindFirstChild("m1").Value ~= part:FindFirstChild("m1").Value and CurrentPart:FindFirstChild("m2").Value ~= part:FindFirstChild("m2").Value do
+			while roundVectorUp(CurrentPart:FindFirstChild("m1").Value) ~= roundVectorUp(part:FindFirstChild("m1").Value) and roundVectorUp(CurrentPart:FindFirstChild("m2").Value) ~= roundVectorUp(part:FindFirstChild("m2").Value) do
 				local args = {
 					[1] = {
 						[1] = {
 							[1] = CurrentPart,
-							[2] = part:FindFirstChild("m1").Value * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)) + Vector3.new(0, 0.001, 0),
-							[3] = Vector3.new(5, 1, 5),
+							[2] = roundVectorUp(CFrame.new(part:FindFirstChild("m1").Value)) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
+							[3] = part.Size,
 							[4] = {
-								[1] = part:FindFirstChild("m1").Value + Vector3.new(0, 0.001, 0),
-								[2] = part:FindFirstChild("m2").Value
+								[1] = roundVectorUp(part:FindFirstChild("m1").Value),
+								[2] = roundVectorUp(part:FindFirstChild("m2").Value)
 							}
 						}
 					}
 				}
-				
+
 				game:GetService("ReplicatedStorage").Events.MoveObject:InvokeServer(unpack(args))
+
 				task.wait()
 			end
 		elseif string.find(part.Name, "Push") then
@@ -330,13 +520,14 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					[1] = {
 						[1] = {
 							[1] = CurrentPart,
-							[2] = part.OrigCFrame.Value + Vector3.new(0, 0.001, 0),
+							[2] = CFrame.new(roundVectorUp(part.Position)) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
 							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
 						},
 					},
 				}
-				
+
 				Events.MoveObject:InvokeServer(unpack(args))
+
 				task.wait()
 			end
 		else
@@ -345,26 +536,187 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					[1] = {
 						[1] = {
 							[1] = CurrentPart,
-							[2] = CFrame.new(part.Position + Vector3.new(0, 0.001, 0)) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
+							[2] = CFrame.new(roundVectorUp(part.Position)) * CFrame.Angles(math.rad(part.Rotation.X), math.rad(part.Rotation.Y), math.rad(part.Rotation.Z)),
 							[3] = Vector3.new(part.Size.X, part.Size.Y, part.Size.Z)
 						},
 					},
 				}
-				
+
 				Events.MoveObject:InvokeServer(unpack(args))
+
 				task.wait()
 			end
 		end
 	end)()
 
-	if NewPart and NewPart.Parent then
-		NewPart.Parent = workspace.PartQueue
+	local propertyTask = coroutine.create(function()
+		for _, property in ipairs(PropertyTypes.PaintObject) do
+			if part.ClassName == "MeshPart" and property == "Shape" then continue end
+
+			local value = part[property]
+
+			if value ~= nil then
+				if typeof(value) == "EnumItem" then value = value.Name end
+
+				while not (NewPart[property] == value or (typeof(NewPart[property]) == "EnumItem" and NewPart[property].Name == value)) do
+					local args = { 
+						[1] = {NewPart}, 
+						[2] = property, 
+						[3] = value 
+					}
+					
+					Events.PaintObject:InvokeServer(unpack(args))
+				end
+			end
+		end
+
+		for _, property in ipairs(PropertyTypes.SpecialPaintObject) do
+			local value
+
+			if property == "Water" then
+				if part:FindFirstChild("AttributeLinks") and part.AttributeLinks:FindFirstChild("Water") then
+					value = true
+				end
+			elseif property == "Surface" then
+				value = part.FrontSurface.Name
+			elseif property == "Slipperiness" then
+				if part.CustomPhysicalProperties then
+					value = part.CustomPhysicalProperties.FrictionWeight
+				end
+			end
+
+			if value ~= nil then
+				if property == "Water" then
+					while not (NewPart:FindFirstChild("AttributeLinks") and NewPart.AttributeLinks:FindFirstChild("Water")) do
+						local args = { 
+							[1] = {NewPart}, 
+							[2] = property, 
+							[3] = value 
+						}
+						
+						Events.PaintObject:InvokeServer(unpack(args))
+					end
+				elseif property == "Surface" then
+					while NewPart.FrontSurface ~= part.FrontSurface do
+						local args = { 
+							[1] = {NewPart}, 
+							[2] = property, 
+							[3] = value 
+						}
+						
+						Events.PaintObject:InvokeServer(unpack(args))
+					end
+				elseif property == "Slipperiness" then
+					while NewPart.CustomPhysicalProperties ~= nil and NewPart.CustomPhysicalProperties.FrictionWeight ~= part.CustomPhysicalProperties.FrictionWeight do
+						local args = { 
+							[1] = {NewPart}, 
+							[2] = property, 
+							[3] = value 
+						}
+						
+						Events.PaintObject:InvokeServer(unpack(args))
+					end
+				end
+			end
+		end
+	end)
+
+	local effectTask = coroutine.create(function()
+		for effectType, effectIndex in pairs(PropertyTypes.EffectTypes) do
+			local effectOrigin = part:FindFirstChild(effectIndex)
+			if effectOrigin then
+				if effectOrigin:FindFirstChild(effectIndex) then
+					effectOrigin = effectOrigin[effectIndex]
+				end
+
+				local args = { 
+					[1] = {NewPart}, 
+					[2] = effectType, 
+					[3] = "Default" 
+				}
+				
+				Events.EffectObject:InvokeServer(unpack(args))
+
+				for _, effectProperty in ipairs(PropertyTypes.EffectProperties[effectType]) do
+					local propertyOrigin = effectOrigin
+					local parentProperties = {"SizingMode", "LightInfluence", "Brightness", "Face"}
+					local parentTypes = {"text", "image", "video"}
+
+					if table.find(parentProperties, effectProperty) and table.find(parentTypes, effectType) then
+						propertyOrigin = effectOrigin.Parent
+					end
+
+					local value = propertyOrigin[effectProperty]
+					if typeof(value) == "EnumItem" then value = value.Name end
+
+					if (effectProperty == "Texture" or "Video" or "Image") and typeof(value) == "string" then
+						value = value:gsub("^rbxassetid://", "") -- Remove leading instance of "rbxassetid://"
+						value = value:gsub("rbxassetid://", "") -- Remove any remaining instances within the string
+					end
+
+					if value ~= nil then
+						local args = { 
+							[1] = {NewPart}, 
+							[2] = effectType, 
+							[3] = effectProperty, 
+							[4] = value 
+						}
+						
+						Events.EffectObject:InvokeServer(unpack(args))
+					end
+				end
+			end
+		end
+	end)
+
+	local behaviorTask = coroutine.create(function()
+		for _, behaviour in ipairs(part:GetChildren()) do
+			if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
+				local args = { 
+					[1] = {NewPart}, 
+					[2] = behaviour.Name, 
+					[3] = behaviour.Value 
+				}
+				
+				Events.BehaviourObject:InvokeServer(unpack(args))
+			elseif behaviour:IsA("Folder") and behaviour.Name == "Activateds" then
+				local function getLinkedButtonParts()
+					local behaviourLinks = {}
+					
+					for i, objectValue: ObjectValue in pairs(behaviour:GetChildren()) do
+						table.insert(behaviourLinks, objectValue.Value)
+					end
+					
+					return behaviourLinks
+				end
+				
+				local args = {
+					[1] = NewPart,
+					[2] = getLinkedButtonParts()
+				}
+
+				game:GetService("ReplicatedStorage").Events.UpdateButton:FireServer(unpack(args))
+			end
+		end
+	end)
+
+	coroutine.resume(effectTask)
+	coroutine.resume(behaviorTask)
+	coroutine.resume(propertyTask)
+
+	while coroutine.status(propertyTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
+		task.wait()
 	end
 
-	repeat task.wait() until (tick() - startTime) >= waitTime
+	if NewPart ~= nil and NewPart.Parent ~= nil then
+		NewPart.Parent = workspace.PartQueue
+	end
+	
+	repeat task.wait() until (tick() - startTime) >= waitTime -- precaution for parts faster then required waitTime.
 
 	return tick() - startTime
 end
+
 
 local function getPlayerNames()
 	local plrs = {}
