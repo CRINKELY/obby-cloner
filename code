@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.13 db1"
+local ver = "1.13 db2"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -696,8 +696,10 @@ function ClonePartPropertiesEfficient(part: BasePart)
 						[1] = NewPart,
 						[2] = getLinkedButtonParts()
 					}
-
-					print(table.concat(getLinkedButtonParts(), ", "))
+					
+					pcall(function()
+						print(getLinkedButtonParts())
+					end)
 
 					game:GetService("ReplicatedStorage").Events.UpdateButton:FireServer(unpack(args))
 				end
