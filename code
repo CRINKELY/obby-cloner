@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.13"
+local ver = "1.13 db1"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -670,37 +670,41 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	end)
 
 	local behaviorTask = coroutine.create(function()
-		for _, behaviour in ipairs(part:GetChildren()) do
-			print("isbutton: ", behaviour:IsA("Folder") and behaviour.Name == "Activateds")
-			if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
-				local args = { 
-					[1] = {NewPart}, 
-					[2] = behaviour.Name, 
-					[3] = behaviour.Value 
-				}
-				
-				Events.BehaviourObject:InvokeServer(unpack(args))
-			elseif behaviour:IsA("Folder") and behaviour.Name == "Activateds" then
-				local function getLinkedButtonParts()
-					local behaviourLinks = {}
-					
-					for i, objectValue: ObjectValue in pairs(behaviour:GetChildren()) do
-						table.insert(behaviourLinks, objectValue.Value)
-					end
-					
-					return behaviourLinks
-				end
-				
-				local args = {
-					[1] = NewPart,
-					[2] = getLinkedButtonParts()
-				}
-				
-				print(table.concat(getLinkedButtonParts(), ", "))
+		local s, e = pcall(function()
+			for _, behaviour in ipairs(part:GetChildren()) do
+				print("isbutton: ", behaviour:IsA("Folder") and behaviour.Name == "Activateds")
+				if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
+					local args = { 
+						[1] = {NewPart}, 
+						[2] = behaviour.Name, 
+						[3] = behaviour.Value 
+					}
 
-				game:GetService("ReplicatedStorage").Events.UpdateButton:FireServer(unpack(args))
+					Events.BehaviourObject:InvokeServer(unpack(args))
+				elseif behaviour:IsA("Folder") and behaviour.Name == "Activateds" then
+					local function getLinkedButtonParts()
+						local behaviourLinks = {}
+
+						for i, objectValue: ObjectValue in pairs(behaviour:GetChildren()) do
+							table.insert(behaviourLinks, objectValue.Value)
+						end
+
+						return behaviourLinks
+					end
+
+					local args = {
+						[1] = NewPart,
+						[2] = getLinkedButtonParts()
+					}
+
+					print(table.concat(getLinkedButtonParts(), ", "))
+
+					game:GetService("ReplicatedStorage").Events.UpdateButton:FireServer(unpack(args))
+				end
 			end
-		end
+		end)
+		
+		warn(s, e)
 	end)
 
 	coroutine.resume(effectTask)
