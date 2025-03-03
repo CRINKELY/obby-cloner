@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.16"
+local ver = "1.17"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -719,13 +719,13 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	while coroutine.status(propertyTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
 		task.wait()
 	end
-	
-	if part:FindFirstChild("Activateds") then
-		table.insert(ButtonLinks, {["Part"] = NewPart, ["Links"] = GetButtonLinks(part)})
-	end
 
 	if NewPart ~= nil and NewPart.Parent ~= nil then
 		NewPart.Parent = workspace.PartQueue
+	end
+	
+	if part:FindFirstChild("Activateds") then
+		table.insert(ButtonLinks, {["Part"] = NewPart, ["Links"] = GetButtonLinks(part)})
 	end
 
 	repeat task.wait() until (tick() - startTime) >= waitTime -- precaution for parts faster then required waitTime.
@@ -863,9 +863,14 @@ ClonerInput = Cloner:CreateInput({
 	Flag = "Input1",
 	Callback = function(Text)
 		local obbyNames = getObbyNames()
+		
+		local player, cframe = GetSelectedObby()
 
 		if obbyNames ~= nil and table.find(obbyNames, Text) then
 			notification("Obby Cloner", `ObbyId set to {Text}.`, 4, "bell")
+		elseif tonumber(Text) ~= nil and game.ReplicatedStorage.SavedObbies:FindFirstChild(player.Name) ~= nil and #game.ReplicatedStorage.SavedObbies[player.Name]:GetChildren() <= math.abs(tonumber(Text)) then
+			notification("Obby Cloner", `ObbyId set to {game.ReplicatedStorage.SavedObbies[player.Name]:GetChildren()[math.abs(tonumber(Text))].Name}.`, 4, "bell")
+			ClonerInput:Set(game.ReplicatedStorage.SavedObbies[player.Name]:GetChildren()[math.abs(tonumber(Text))].Name)
 		else
 			notification("Error:", "Obby currently selected cannot be found or doesn't exist. Please reselect a ObbyId.", 6.5, "shield-alert")
 			ClonerInput:Set("")
@@ -939,6 +944,8 @@ ButtonClone = Cloner:CreateButton({
 				end
 			end
 			
+			task.wait()
+			
 			CloneButtonLinks()
 
 			notification("Obby Cloner", "Obby has been cloned! Enjoy :)", 4, "bell")
@@ -963,6 +970,12 @@ while task.wait() do
 		task.wait()
 		continue
 	end
+	
+	local obbyNameTable = {}
+	
+	for i, name in pairs(getObbyNames()) do
+		table.insert(obbyNameTable, `{name} [{i}]`)
+	end
 
-	ObbiesSaved:Set({Title = "Cloned Obbies:", Content = table.concat(getObbyNames(), ",\n")})
+	ObbiesSaved:Set({Title = "Cloned Obbies:", Content = table.concat(obbyNameTable, ",\n")})
 end
