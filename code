@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.15"
+local ver = "1.16"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -426,6 +426,16 @@ end
 
 local ButtonLinks = {}
 
+function GetButtonLinks(part)
+	local behaviourLinks = {}
+
+	for i, objectValue: ObjectValue in pairs(part.Activateds:GetChildren()) do
+		table.insert(behaviourLinks, objectValue.Value)
+	end
+
+	return behaviourLinks
+end
+
 function CloneButtonLinks()
 	for i, linkTable in pairs(ButtonLinks) do
 		local args = {
@@ -686,6 +696,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 		local s, e = pcall(function()
 			for _, behaviour in ipairs(part:GetChildren()) do
 				print("isbutton: ", behaviour:IsA("Folder") and behaviour.Name == "Activateds")
+				
 				if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
 					local args = { 
 						[1] = {NewPart}, 
@@ -694,18 +705,6 @@ function ClonePartPropertiesEfficient(part: BasePart)
 					}
 
 					Events.BehaviourObject:InvokeServer(unpack(args))
-				elseif behaviour:IsA("Folder") and behaviour.Name == "Activateds" then
-					local function GetLinkedButtonParts()
-						local behaviourLinks = {}
-
-						for i, objectValue: ObjectValue in pairs(part.Activateds:GetChildren()) do
-							table.insert(behaviourLinks, objectValue.Value)
-						end
-
-						return behaviourLinks
-					end
-					
-					table.insert(ButtonLinks, {["Part"] = NewPart, ["Links"] = GetLinkedButtonParts()})
 				end
 			end
 		end)
@@ -719,6 +718,10 @@ function ClonePartPropertiesEfficient(part: BasePart)
 
 	while coroutine.status(propertyTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
 		task.wait()
+	end
+	
+	if part:FindFirstChild("Activateds") then
+		table.insert(ButtonLinks, {["Part"] = NewPart, ["Links"] = GetButtonLinks(part)})
 	end
 
 	if NewPart ~= nil and NewPart.Parent ~= nil then
