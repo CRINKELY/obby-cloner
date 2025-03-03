@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.17 testing 5"
+local ver = "1.17 testing 6"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -246,6 +246,10 @@ function GetButtonLinks(part)
 	for i, objectValue: ObjectValue in pairs(part.Activateds:GetChildren()) do
 		print("Getting button link: " .. objectValue.Value.Name)
 		table.insert(behaviourLinks, objectValue.Value)
+	end
+	
+	for i, inst in pairs(behaviourLinks) do
+		print(inst.Name)
 	end
 
 	return behaviourLinks
@@ -543,13 +547,13 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	while coroutine.status(propertyTask) ~= "dead" or coroutine.status(effectTask) ~= "dead" or coroutine.status(behaviorTask) ~= "dead" do
 		task.wait()
 	end
+	
+	if part:FindFirstChild("Activateds") then
+		table.insert(ButtonLinks, {["Part"] = NewPart, ["Links"] = GetButtonLinks(NewPart)})
+	end
 
 	if NewPart ~= nil and NewPart.Parent ~= nil then
 		NewPart.Parent = workspace.PartQueue
-	end
-	
-	if part:FindFirstChild("Activateds") then
-		table.insert(ButtonLinks, {["Part"] = NewPart, ["Links"] = GetButtonLinks(part)})
 	end
 
 	repeat task.wait() until (tick() - startTime) >= waitTime -- precaution for parts faster then required waitTime.
