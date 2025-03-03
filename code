@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.17 testing 2"
+local ver = "1.17 testing 3"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -260,6 +260,17 @@ function CloneButtonLinks()
 		print(game:GetService("HttpService"):JSONEncode(args))
 
 		game:GetService("ReplicatedStorage").Events.UpdateButton:FireServer(unpack(args))
+		
+		--[[
+		local args = {
+			[1] = workspace.Obbies.alte055.Items.Buttons.Button,
+			[2] = {
+				[1] = workspace.Obbies.alte055.Items.Parts.Part
+			}
+		}
+
+		game:GetService("ReplicatedStorage").Events.UpdateButton:FireServer(unpack(args))
+		]]
 	end
 end
 
@@ -535,7 +546,6 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	end
 
 	if NewPart ~= nil and NewPart.Parent ~= nil then
-		NewPart.Name = "CLONED_"..GenerateName()
 		NewPart.Parent = workspace.PartQueue
 	end
 	
