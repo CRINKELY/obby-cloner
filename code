@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.17 testing 6"
+local ver = "1.17 testing 7"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -248,9 +248,7 @@ function GetButtonLinks(part)
 		table.insert(behaviourLinks, objectValue.Value)
 	end
 	
-	for i, inst in pairs(behaviourLinks) do
-		print(inst.Name)
-	end
+	print(table.concat(behaviourLinks, ", "))
 
 	return behaviourLinks
 end
