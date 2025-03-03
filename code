@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.17 testing 4"
+local ver = "1.17 testing 5"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -244,6 +244,7 @@ function GetButtonLinks(part)
 	local behaviourLinks = {}
 
 	for i, objectValue: ObjectValue in pairs(part.Activateds:GetChildren()) do
+		print("Getting button link: " .. objectValue.Value.Name)
 		table.insert(behaviourLinks, objectValue.Value)
 	end
 
@@ -257,7 +258,7 @@ function CloneButtonLinks()
 			[2] = linkTable[2]
 		}
 		
-		print(game:GetService("HttpService"):JSONEncode(args))
+		print(table.concat(linkTable, ", "))
 
 		game:GetService("ReplicatedStorage").Events.UpdateButton:FireServer(unpack(args))
 		
@@ -520,8 +521,6 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	local behaviorTask = coroutine.create(function()
 		local s, e = pcall(function()
 			for _, behaviour in ipairs(part:GetChildren()) do
-				print("isbutton: ", behaviour:IsA("Folder") and behaviour.Name == "Activateds")
-				
 				if behaviour:IsA("ValueBase") and not behaviour:IsA("Folder") and not string.find(behaviour.Name, "Link") then
 					local args = { 
 						[1] = {NewPart}, 
@@ -550,7 +549,6 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	end
 	
 	if part:FindFirstChild("Activateds") then
-		game:GetService("HttpService"):JSONEncode({["Part"] = NewPart, ["Links"] = GetButtonLinks(part)})
 		table.insert(ButtonLinks, {["Part"] = NewPart, ["Links"] = GetButtonLinks(part)})
 	end
 
