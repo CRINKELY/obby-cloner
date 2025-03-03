@@ -1,5 +1,5 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local ver = "1.17 testing 3"
+local ver = "1.17 testing 4"
 
 local Events = game.ReplicatedStorage.Events
 
@@ -550,6 +550,7 @@ function ClonePartPropertiesEfficient(part: BasePart)
 	end
 	
 	if part:FindFirstChild("Activateds") then
+		game:GetService("HttpService"):JSONEncode({["Part"] = NewPart, ["Links"] = GetButtonLinks(part)})
 		table.insert(ButtonLinks, {["Part"] = NewPart, ["Links"] = GetButtonLinks(part)})
 	end
 
